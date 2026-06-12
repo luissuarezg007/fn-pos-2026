@@ -68,7 +68,11 @@ label{display:block;font-size:12px;font-weight:700;color:var(--muted);margin:10p
 #modalBack{display:none;position:fixed;inset:0;background:rgba(43,36,33,.45);z-index:50;align-items:center;justify-content:center}
 #modalBack.open{display:flex}
 #specModal{background:#fff;border-radius:16px;padding:18px;width:min(440px,92vw);max-height:86vh;overflow:auto}
-#flavorChips{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0}
+.gchips{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 10px}
+#cliSug{display:flex;flex-direction:column;gap:6px;margin-top:6px}
+#cliSug .sug{text-align:left;background:#fff;border:1px solid var(--line);border-radius:10px;padding:9px 12px;font-size:13px}
+#cliSel .selchip{display:inline-flex;align-items:center;gap:10px;background:#FDE4D6;border:1px solid var(--accent);border-radius:12px;padding:8px 12px;font-weight:600;font-size:13px}
+#cliSel .selchip button{background:none;color:var(--bad);font-size:18px;font-weight:800}
 .qty{display:flex;align-items:center;gap:14px}
 .qty button{width:48px;height:48px;border-radius:12px;background:var(--bg);border:1px solid var(--line);font-size:22px;font-weight:800}
 .qty span{font-size:22px;font-weight:800;min-width:34px;text-align:center}
@@ -102,6 +106,17 @@ table.cat th,table.cat td{border-bottom:1px solid var(--line);padding:7px 6px;te
 table.cat input{min-height:38px;padding:6px 8px;width:100%}
 table.cat input.num{width:84px}
 .toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:var(--nav);color:#fff;padding:12px 20px;border-radius:12px;z-index:99;display:none;font-weight:600}
+.hrow{display:flex;align-items:center;gap:8px;margin:7px 0;font-size:12px}
+.hlbl{width:110px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.htrack{flex:1;background:var(--bg);border-radius:6px;height:16px;overflow:hidden}
+.hbar{display:block;height:100%;background:var(--accent);border-radius:6px}
+#chHour,#chDow{display:flex;align-items:flex-end;gap:3px;height:150px;margin-top:10px}
+.vcol{flex:1;display:flex;flex-direction:column;justify-content:flex-end;height:100%}
+.vb{background:var(--accent);border-radius:3px 3px 0 0;min-height:2px}
+.vlbl{font-size:9px;color:var(--muted);text-align:center;height:12px}
+.heat{display:grid;grid-template-columns:34px repeat(24,1fr);gap:2px;margin-top:10px;align-items:center}
+.heat .hl{font-size:10px;color:var(--muted)}
+.heat .hc{display:block;aspect-ratio:1;border-radius:2px}
 @media print{ #nav,#tkList,.noprint{display:none!important} body{background:#fff} }
 </style>
 </head>
@@ -111,8 +126,8 @@ table.cat input.num{width:84px}
   <button class="navbtn active" data-view="pedidos"><span class="ico">🍗</span>Pedidos</button>
   <button class="navbtn" data-view="comandas"><span class="ico">👨‍🍳</span>Comandas <span id="kCount"></span></button>
   <button class="navbtn" data-view="tickets"><span class="ico">🧾</span>Tickets</button>
-  <button class="navbtn" disabled title="Fase 2"><span class="ico">📦</span>Inventario</button>
-  <button class="navbtn" disabled title="Fase 3"><span class="ico">📈</span>Tendencias</button>
+  <button class="navbtn" data-view="inventario"><span class="ico">📦</span>Inventario</button>
+  <button class="navbtn" data-view="tendencias"><span class="ico">📈</span>Tendencias</button>
   <button class="navbtn" data-view="config"><span class="ico">⚙️</span>Config</button>
   <div id="netStatus"><span class="dot"></span> <span id="netText">—</span><br><span id="pendText"></span></div>
 </nav>
@@ -127,25 +142,34 @@ table.cat input.num{width:84px}
         <div id="prodGrid"></div>
         <div class="card" style="margin-top:16px">
           <b>Cliente y entrega</b>
-          <div class="row" style="margin-top:6px;flex-wrap:wrap">
-            <div style="flex:1;min-width:180px"><label>Nombre</label><input id="cName" style="width:100%" placeholder="Nombre del cliente"></div>
-            <div style="flex:1;min-width:180px"><label>Teléfono (WhatsApp)</label><input id="cPhone" style="width:100%" inputmode="tel" placeholder="55 1234 5678"></div>
+          <label>Buscar en catálogo de clientes</label>
+          <div class="row" style="gap:8px;align-items:center">
+            <input id="cliSearch" style="flex:1" placeholder="Nombre, teléfono o casa…" autocomplete="off">
+            <button class="chip" id="btnGenerico" type="button">Cliente genérico</button>
+          </div>
+          <div id="cliSug"></div>
+          <div id="cliSel" style="display:none;margin-top:8px"></div>
+          <div id="newCliBox">
+            <div class="row" style="margin-top:6px;flex-wrap:wrap">
+              <div style="flex:1;min-width:180px"><label>Nombre (nuevo cliente)</label><input id="cName" style="width:100%" placeholder="Nombre del cliente"></div>
+              <div style="flex:1;min-width:180px"><label>Teléfono (WhatsApp)</label><input id="cPhone" style="width:100%" inputmode="tel" placeholder="55 1234 5678"></div>
+            </div>
+            <label>Casa (dirección de entrega)</label><input id="cAddr" style="width:100%" placeholder="Casa / número">
+            <div class="small muted" style="margin-top:4px">Si capturas datos aquí, el cliente se agrega al catálogo al guardar el pedido.</div>
           </div>
           <label>Tipo de pedido</label>
           <div class="seg" id="segType">
-            <button class="chip sel" data-v="Domicilio">Domicilio</button>
-            <button class="chip" data-v="Pickup">Pickup</button>
-            <button class="chip" data-v="Mesa">Mesa</button>
+            <button class="chip sel" data-v="Al momento">Al momento</button>
+            <button class="chip" data-v="Programado">Programado</button>
           </div>
-          <div id="addrBox">
-            <label>Dirección de entrega</label><input id="cAddr" style="width:100%" placeholder="Calle, número, colonia">
-            <label>Referencias</label><input id="cRefs" style="width:100%" placeholder="Portón negro, frente al parque…">
+          <div id="schedBox" style="display:none">
+            <label>Fecha y hora programada</label><input id="cSched" type="datetime-local" style="width:100%">
           </div>
+          <label>Nota del pedido (opcional)</label><input id="cNote" style="width:100%" placeholder="Nota general del pedido">
           <label>Forma de pago</label>
           <div class="seg" id="segPay">
             <button class="chip sel" data-v="Efectivo">Efectivo</button>
             <button class="chip" data-v="Transferencia">Transferencia</button>
-            <button class="chip" data-v="Tarjeta">Tarjeta</button>
           </div>
           <div id="cashBox" class="row" style="align-items:center;margin-top:8px">
             <div><label>Paga con</label><input id="cPays" class="num" inputmode="decimal" style="width:120px" placeholder="$"></div>
@@ -196,6 +220,68 @@ table.cat input.num{width:84px}
     </div>
   </section>
 
+  <!-- ============ INVENTARIO ============ -->
+  <section id="view-inventario" class="view">
+    <h2>Inventario de insumos</h2>
+    <div class="row" style="flex-wrap:wrap">
+      <div class="card" style="flex:2;min-width:340px">
+        <b>Stock actual</b>
+        <table class="cat"><thead><tr><th>Insumo</th><th>Unidad</th><th>Stock</th><th>Mínimo</th><th>Estado</th></tr></thead><tbody id="invRows"></tbody></table>
+        <div id="invAlert" class="small" style="margin-top:10px"></div>
+      </div>
+      <div class="card" style="flex:1;min-width:280px">
+        <b>Registrar movimiento</b>
+        <label>Insumo</label><select id="mvIns" style="width:100%"></select>
+        <label>Movimiento</label>
+        <div class="seg" id="segMv">
+          <button class="chip sel" data-v="entrada">Entrada</button>
+          <button class="chip" data-v="salida">Salida</button>
+          <button class="chip" data-v="merma">Merma</button>
+        </div>
+        <label>Cantidad</label><input id="mvQty" inputmode="decimal" style="width:120px">
+        <label>Nota (opcional)</label><input id="mvNote" style="width:100%">
+        <button class="btn primary" id="mvApply" style="margin-top:12px">Aplicar movimiento</button>
+      </div>
+    </div>
+    <div class="row" style="flex-wrap:wrap;margin-top:16px">
+      <div class="card" style="flex:1;min-width:320px">
+        <b>Kardex (últimos 25 movimientos)</b>
+        <table class="cat"><thead><tr><th>Fecha</th><th>Insumo</th><th>Mov.</th><th>Cant.</th><th>Ref.</th></tr></thead><tbody id="kdxRows"></tbody></table>
+      </div>
+      <div class="card" style="flex:1;min-width:320px">
+        <b>Insumos (definición)</b>
+        <table class="cat"><thead><tr><th>Nombre</th><th>Unidad</th><th>Mínimo</th><th></th></tr></thead><tbody id="insRows"></tbody></table>
+        <div class="row" style="margin-top:8px"><button class="btn ghost" id="btnAddIns">+ Insumo</button><button class="btn primary" id="btnSaveIns">Guardar insumos</button></div>
+        <hr style="border:none;border-top:1px solid var(--line);margin:14px 0">
+        <b>Recetas (descuento automático por venta)</b>
+        <label>Producto</label><select id="rcProd" style="width:100%"></select>
+        <div id="rcRows"></div>
+        <div class="row" style="margin-top:8px"><button class="btn ghost" id="rcAdd">+ Ingrediente</button><button class="btn primary" id="rcSave">Guardar receta</button></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ TENDENCIAS ============ -->
+  <section id="view-tendencias" class="view">
+    <h2>Tendencias de venta</h2>
+    <div class="seg" style="max-width:380px" id="segRange">
+      <button class="chip" data-v="1">Hoy</button>
+      <button class="chip sel" data-v="7">7 días</button>
+      <button class="chip" data-v="30">30 días</button>
+    </div>
+    <div class="row" style="flex-wrap:wrap;margin-top:14px" id="kpiRow"></div>
+    <div class="row" style="flex-wrap:wrap;margin-top:16px">
+      <div class="card" style="flex:1;min-width:320px"><b>Ventas por producto</b><div id="chProd" style="margin-top:8px"></div></div>
+      <div class="card" style="flex:1;min-width:320px"><b>Ventas por hora del día</b><div id="chHour"></div></div>
+    </div>
+    <div class="row" style="flex-wrap:wrap;margin-top:16px">
+      <div class="card" style="flex:1;min-width:320px"><b>Ventas por día de la semana</b><div id="chDow"></div></div>
+      <div class="card" style="flex:1;min-width:320px"><b>Mapa de calor · día × hora (pedidos)</b><div id="chHeat"></div></div>
+    </div>
+    <div class="card" style="margin-top:16px"><b>Proyección próximos 7 días y sugerencia de compra</b><div id="chProj"></div></div>
+    <div style="margin-top:14px" class="noprint"><button class="btn ghost" id="btnCSV">Exportar CSV del rango</button></div>
+  </section>
+
   <!-- ============ CONFIG ============ -->
   <section id="view-config" class="view">
     <h2>Configuración</h2>
@@ -222,6 +308,12 @@ table.cat input.num{width:84px}
         </div>
         <div id="sbStatus" class="small" style="margin-top:8px">Sin configurar — la app funciona local y guarda pendientes.</div>
       </div>
+      <div class="card" style="grid-column:1/-1">
+        <b>Catálogo de clientes <span id="cliCount" class="muted small"></span></b>
+        <table class="cat"><thead><tr><th>Nombre</th><th>Teléfono (WhatsApp)</th><th>Casa</th><th></th></tr></thead><tbody id="cliRows"></tbody></table>
+        <div class="row" style="margin-top:8px"><button class="btn ghost" id="btnAddCli">+ Cliente</button><button class="btn primary" id="btnSaveCli">Guardar clientes</button></div>
+        <p class="small muted">Los clientes también se registran solos al guardar pedidos con datos nuevos. El teléfono de aquí es el que usa el envío por WhatsApp.</p>
+      </div>
       <div class="card">
         <b>Respaldo local</b>
         <p class="small muted">Exporta todos los pedidos y el catálogo a un archivo JSON (respaldo manual adicional a la nube).</p>
@@ -233,15 +325,22 @@ table.cat input.num{width:84px}
       <div class="card" style="grid-column:1/-1">
         <b>Catálogo de productos</b>
         <label>Categorías (separadas por coma)</label><input id="cfgCats" style="width:100%">
-        <label>Sabores / salsas (separados por coma)</label><input id="cfgFlavors" style="width:100%">
+        <label>Listas de opciones (complementos; usa "+precio" para extras, ej. "Queso +15")</label>
+        <table class="cat"><thead><tr><th style="width:160px">Lista</th><th>Opciones</th><th></th></tr></thead><tbody id="listRows"></tbody></table>
+        <div class="row" style="margin:8px 0 4px"><button class="btn ghost" id="btnAddList">+ Lista</button><button class="btn primary" id="btnSaveLists">Guardar listas</button></div>
         <table class="cat" style="margin-top:12px">
-          <thead><tr><th>Producto</th><th>Precio</th><th>Categoría</th><th>¿Lleva sabor?</th><th></th></tr></thead>
+          <thead><tr><th>Producto</th><th>Precio</th><th>Categoría</th><th></th></tr></thead>
           <tbody id="prodRows"></tbody>
         </table>
         <div class="row" style="margin-top:10px">
           <button class="btn ghost" id="btnAddProd">+ Agregar producto</button>
           <button class="btn primary" id="btnSaveCat">Guardar catálogo</button>
         </div>
+        <hr style="border:none;border-top:1px solid var(--line);margin:14px 0">
+        <b>Complementos por producto</b>
+        <label>Producto</label><select id="cgProd" style="width:100%;max-width:340px"></select>
+        <div id="cgRows"></div>
+        <div class="row" style="margin-top:8px"><button class="btn ghost" id="cgAdd">+ Agregar grupo</button><button class="btn primary" id="cgSave">Guardar complementos</button></div>
       </div>
     </div>
   </section>
@@ -251,10 +350,7 @@ table.cat input.num{width:84px}
 <div id="modalBack">
   <div id="specModal">
     <h2 id="mTitle" style="font-size:19px">Producto</h2>
-    <div id="mFlavorSec">
-      <label>Sabor / salsa (puedes elegir varios para mitades)</label>
-      <div id="flavorChips"></div>
-    </div>
+    <div id="mGroups"></div>
     <label>Cantidad</label>
     <div class="qty"><button id="mMinus">−</button><span id="mQty">1</span><button id="mPlus">+</button></div>
     <label>Notas / especificaciones</label>
@@ -283,12 +379,14 @@ function toast(msg){ const t=$('#toast'); t.textContent=msg; t.style.display='bl
 /* ================= INDEXEDDB ================= */
 let db;
 function openDB(){ return new Promise((res,rej)=>{
-  const rq = indexedDB.open('fancy-nancy', 1);
+  const rq = indexedDB.open('fancy-nancy', 3);
   rq.onupgradeneeded = e => {
     const d = e.target.result;
     if(!d.objectStoreNames.contains('orders')) d.createObjectStore('orders',{keyPath:'id'});
     if(!d.objectStoreNames.contains('outbox')) d.createObjectStore('outbox',{autoIncrement:true});
     if(!d.objectStoreNames.contains('meta'))   d.createObjectStore('meta');
+    if(!d.objectStoreNames.contains('movs'))   d.createObjectStore('movs',{keyPath:'id'});
+    if(!d.objectStoreNames.contains('clients')) d.createObjectStore('clients',{keyPath:'id'});
   };
   rq.onsuccess = e => { db = e.target.result; res(); };
   rq.onerror = () => rej(rq.error);
@@ -305,24 +403,38 @@ const idb = {
 
 /* ================= ESTADO Y CATÁLOGO ================= */
 const DEFAULT_CATALOG = {
-  categories: ['Alitas','Boneless','Papas','Bebidas','Extras'],
-  flavors: ['BBQ','Búfalo','Mango habanero','Habanero','Lemon pepper','Ajo parmesano'],
+  categories: ['Alitas','Boneless','Cerillitos','Papas','Bebidas','Extras'],
+  optionLists: [
+    {id:'L1', name:'Sabores alitas', options:[{n:'BBQ',p:0},{n:'Búfalo',p:0},{n:'Mango habanero',p:0},{n:'Habanero',p:0},{n:'Lemon pepper',p:0},{n:'Ajo parmesano',p:0}]},
+    {id:'L2', name:'Sabores cerillito', options:[{n:'Tamarindo',p:0},{n:'Chamoy',p:0},{n:'Mango',p:0},{n:'Sandía',p:0}]},
+    {id:'L3', name:'Toppings papas', options:[{n:'Catsup',p:0},{n:'Queso',p:15}]}
+  ],
   products: [
-    {id:'p1', name:'Alitas 6 pz',  price:95,  cat:'Alitas',   flavored:true},
-    {id:'p2', name:'Alitas 12 pz', price:175, cat:'Alitas',   flavored:true},
-    {id:'p3', name:'Alitas 18 pz', price:250, cat:'Alitas',   flavored:true},
-    {id:'p4', name:'Boneless 300 g', price:135, cat:'Boneless', flavored:true},
-    {id:'p5', name:'Papas gajo',   price:55,  cat:'Papas',    flavored:false},
-    {id:'p6', name:'Papas a la francesa', price:50, cat:'Papas', flavored:false},
-    {id:'p7', name:'Refresco',     price:25,  cat:'Bebidas',  flavored:false},
-    {id:'p8', name:'Agua',         price:20,  cat:'Bebidas',  flavored:false},
-    {id:'p9', name:'Aderezo extra',price:15,  cat:'Extras',   flavored:false}
+    {id:'p1', name:'Alitas 6 pz',  price:95,  cat:'Alitas',   groups:[{name:'Sabor', listId:'L1', required:true,  multi:true}]},
+    {id:'p2', name:'Alitas 12 pz', price:175, cat:'Alitas',   groups:[{name:'Sabor', listId:'L1', required:true,  multi:true}]},
+    {id:'p3', name:'Alitas 18 pz', price:250, cat:'Alitas',   groups:[{name:'Sabor', listId:'L1', required:true,  multi:true}]},
+    {id:'p4', name:'Boneless 300 g', price:135, cat:'Boneless', groups:[{name:'Sabor', listId:'L1', required:true, multi:true}]},
+    {id:'p10', name:'Cerillitos',  price:60,  cat:'Cerillitos', groups:[{name:'Sabor', listId:'L2', required:true, multi:false}]},
+    {id:'p5', name:'Papas gajo',   price:55,  cat:'Papas',    groups:[{name:'Con', listId:'L3', required:false, multi:true}]},
+    {id:'p6', name:'Papas a la francesa', price:50, cat:'Papas', groups:[{name:'Con', listId:'L3', required:false, multi:true}]},
+    {id:'p7', name:'Refresco',     price:25,  cat:'Bebidas',  groups:[]},
+    {id:'p8', name:'Agua',         price:20,  cat:'Bebidas',  groups:[]},
+    {id:'p11', name:'Cerveza',     price:40,  cat:'Bebidas',  groups:[{name:'Cerillito', listId:'L2', required:false, multi:false}]},
+    {id:'p9', name:'Aderezo extra',price:15,  cat:'Extras',   groups:[]}
+  ],
+  insumos: [
+    {id:'i1', name:'Alitas crudas', unit:'kg', min:10},
+    {id:'i2', name:'Boneless crudo', unit:'kg', min:5},
+    {id:'i3', name:'Salsa', unit:'L', min:3},
+    {id:'i4', name:'Aceite', unit:'L', min:5},
+    {id:'i5', name:'Papas', unit:'kg', min:6},
+    {id:'i6', name:'Refresco', unit:'pz', min:12}
   ],
   settings: { biz:'Fancy Nancy', bizPhone:'', envio:30, warnMin:15, badMin:25 },
   updated_at: '1970-01-01T00:00:00.000Z'
-};
+}
 let CAT = null;                    // catálogo vigente
-const S = { view:'pedidos', cat:null, cart:[], type:'Domicilio', pay:'Efectivo',
+const S = { view:'pedidos', cat:null, cart:[], type:'Al momento', pay:'Efectivo',
             modal:{prod:null,qty:1,flavors:[]}, kFilter:'open', tkSel:null };
 
 /* ================= FOLIOS ================= */
@@ -363,6 +475,14 @@ const sync = {
         body=[{id:o.id, folio:o.folio, status:o.status, data:o, updated_at:o.updated_at, created_at:o.created_at}];
       } else if(it.kind==='catalog'){ path='app_config?on_conflict=id';
         body=[{id:'catalog', data:it.payload, updated_at:it.payload.updated_at}];
+      } else if(it.kind==='mov'){ path='inv_movements?on_conflict=id';
+        body=[{id:it.payload.id, data:it.payload, updated_at:it.payload.ts}];
+      } else if(it.kind==='client'){ path='clients?on_conflict=id';
+        body=[{id:it.payload.id, data:it.payload, updated_at:it.payload.updated_at}];
+      } else if(it.kind==='client_del'){
+        const rd = await fetch(this.cfg.url+'/rest/v1/clients?id=eq.'+it.payload.id, {method:'DELETE', headers:this.headers()});
+        if(!rd.ok && rd.status!==404) throw new Error('HTTP '+rd.status);
+        await idb.del('outbox', k); continue;
       } else { await idb.del('outbox',k); continue; }
       const r = await fetch(this.cfg.url+'/rest/v1/'+path, {method:'POST',
         headers:{...this.headers(),'Prefer':'resolution=merge-duplicates,return=minimal'}, body:JSON.stringify(body)});
@@ -380,13 +500,30 @@ const sync = {
       if(!local || (row.data.updated_at > local.updated_at)){ await idb.put('orders', row.data); changed=true; }
       if(row.updated_at > maxTs) maxTs = row.updated_at;
     }
+    // movimientos de inventario (ledger solo-agregar)
+    const lastM = (await idb.get('meta','lastSyncMov')) || '1970-01-01T00:00:00Z';
+    const rm = await fetch(this.cfg.url+'/rest/v1/inv_movements?updated_at=gt.'+encodeURIComponent(lastM)+'&order=updated_at.asc&limit=1000',{headers:this.headers()});
+    if(rm.ok){ const mr = await rm.json(); let mx=lastM;
+      for(const row of mr){ if(!(await idb.get('movs',row.id))){ await idb.put('movs', row.data); changed=true; } if(row.updated_at>mx) mx=row.updated_at; }
+      await idb.put('meta', mx, 'lastSyncMov');
+    }
+    // clientes
+    const lastC = (await idb.get('meta','lastSyncCli')) || '1970-01-01T00:00:00Z';
+    const rcli = await fetch(this.cfg.url+'/rest/v1/clients?updated_at=gt.'+encodeURIComponent(lastC)+'&order=updated_at.asc&limit=1000',{headers:this.headers()});
+    if(rcli.ok){ const cr2 = await rcli.json(); let cx=lastC;
+      for(const row of cr2){ const loc = await idb.get('clients', row.id);
+        if(!loc || row.data.updated_at > loc.updated_at){ await idb.put('clients', row.data); changed=true; }
+        if(row.updated_at>cx) cx=row.updated_at; }
+      await idb.put('meta', cx, 'lastSyncCli');
+      if(changed) refreshClients();
+    }
     // catálogo compartido
     const rc = await fetch(this.cfg.url+'/rest/v1/app_config?id=eq.catalog&select=data',{headers:this.headers()});
     if(rc.ok){ const cr = await rc.json();
       if(cr.length && cr[0].data.updated_at > CAT.updated_at){ CAT = cr[0].data; await idb.put('meta', CAT, 'catalog'); renderCatalogUI(); renderConfig(); changed=true; }
     }
     await idb.put('meta', maxTs, 'lastSync');
-    if(changed){ renderComandas(); renderTickets(); }
+    if(changed){ renderComandas(); renderTickets(); renderInventario(); if(S.view==='tendencias') renderTendencias(); }
   },
   loop(){ clearInterval(this.timer); this.timer = setInterval(()=>this.run(), 5000); this.run(); }
 };
@@ -419,44 +556,69 @@ function renderCatalogUI(){
     '<span class="muted">Sin productos en esta categoría.</span>';
   $$('#prodGrid .prod').forEach(b => b.onclick = ()=> openModal(b.dataset.pid));
 }
+function listById(id){ return (CAT.optionLists||[]).find(l=>l.id===id); }
 function openModal(pid){
   const p = CAT.products.find(x=>x.id===pid); if(!p) return;
-  S.modal = {prod:p, qty:1, flavors:[]};
+  S.modal = {prod:p, qty:1, sel:{}};
   $('#mTitle').textContent = p.name;
   $('#mQty').textContent = '1';
   $('#mNotes').value = '';
-  $('#mPrice').textContent = fmt(p.price);
-  $('#mFlavorSec').style.display = p.flavored ? '' : 'none';
-  $('#flavorChips').innerHTML = CAT.flavors.map(f=>`<button class="chip" data-f="${f}">${f}</button>`).join('');
-  $$('#flavorChips .chip').forEach(b => b.onclick = ()=>{
-    const f=b.dataset.f, i=S.modal.flavors.indexOf(f);
-    if(i>=0){S.modal.flavors.splice(i,1); b.classList.remove('sel');} else {S.modal.flavors.push(f); b.classList.add('sel');}
+  const groups = p.groups||[];
+  $('#mGroups').innerHTML = groups.map((g,gi)=>{
+    const L = listById(g.listId); if(!L) return '';
+    return `<div class="mgroup" data-gi="${gi}">
+      <label>${g.name.toUpperCase()} ${g.required?'*':'(opcional)'} · ${g.multi?'puedes elegir varios':'elige 1'}</label>
+      <div class="gchips">${L.options.map(o=>`<button class="chip" data-n="${o.n.replace(/"/g,'&quot;')}" data-p="${o.p||0}">${o.n}${o.p?' +$'+o.p:''}</button>`).join('')}</div>
+    </div>`;
+  }).join('');
+  $$('#mGroups .chip').forEach(b=>b.onclick=()=>{
+    const gi = Number(b.closest('.mgroup').dataset.gi), g = p.groups[gi];
+    const arr = S.modal.sel[gi] || (S.modal.sel[gi]=[]);
+    const i = arr.findIndex(x=>x.n===b.dataset.n);
+    if(i>=0){ arr.splice(i,1); b.classList.remove('sel'); }
+    else{
+      if(!g.multi){ arr.length=0; b.closest('.gchips').querySelectorAll('.chip').forEach(c=>c.classList.remove('sel')); }
+      arr.push({n:b.dataset.n, p:Number(b.dataset.p)}); b.classList.add('sel');
+    }
+    modalPrice();
   });
+  modalPrice();
   $('#modalBack').classList.add('open');
 }
-function modalQty(d){ S.modal.qty = Math.max(1, S.modal.qty+d); $('#mQty').textContent=S.modal.qty; $('#mPrice').textContent=fmt(S.modal.prod.price*S.modal.qty); }
+function modalExtra(){ return Object.values(S.modal.sel||{}).flat().reduce((a,o)=>a+o.p,0); }
+function modalPrice(){ $('#mPrice').textContent = fmt((S.modal.prod.price+modalExtra())*S.modal.qty); }
+function modalQty(d){ S.modal.qty = Math.max(1, S.modal.qty+d); $('#mQty').textContent=S.modal.qty; modalPrice(); }
 $('#mPlus').onclick = ()=>modalQty(1);
 $('#mMinus').onclick = ()=>modalQty(-1);
 $('#mCancel').onclick = ()=>$('#modalBack').classList.remove('open');
 $('#mAdd').onclick = ()=>{
-  const m=S.modal;
-  if(m.prod.flavored && m.flavors.length===0){ toast('Elige al menos un sabor'); return; }
+  const m=S.modal, groups=m.prod.groups||[];
+  for(let gi=0; gi<groups.length; gi++){
+    if(groups[gi].required && !(m.sel[gi]&&m.sel[gi].length)){ toast('Elige: '+groups[gi].name); return; }
+  }
+  const sel = groups.map((g,gi)=>({g:g.name, opts:(m.sel[gi]||[]).slice()})).filter(x=>x.opts.length);
   S.cart.push({ id:uuid(), productId:m.prod.id, name:m.prod.name, qty:m.qty, price:m.prod.price,
-                flavors:[...m.flavors], notes:$('#mNotes').value.trim(), done:false });
+                extra: modalExtra(), sel, flavors:[], notes:$('#mNotes').value.trim(), done:false });
   $('#modalBack').classList.remove('open');
   renderCart();
 };
+function selTxt(it){
+  if(it.sel && it.sel.length) return it.sel.map(x=>x.g+': '+x.opts.map(o=>o.n+(o.p?' +$'+o.p:'')).join(' / ')).join(' · ');
+  if(it.flavors && it.flavors.length) return it.flavors.join(' / ');
+  return '';
+}
+function lineTotal(it){ return (it.price+(it.extra||0))*it.qty; }
 function cartTotals(){
-  const sub = S.cart.reduce((a,i)=>a+i.price*i.qty,0);
-  const env = (S.type==='Domicilio' && S.cart.length) ? Number(CAT.settings.envio||0) : 0;
+  const sub = S.cart.reduce((a,i)=>a+lineTotal(i),0);
+  const env = S.cart.length ? Number(CAT.settings.envio||0) : 0;
   return {sub, env, tot: sub+env};
 }
 function renderCart(){
   const box = $('#cartItems');
   if(!S.cart.length){ box.innerHTML = '<div class="muted small" id="cartEmpty">Toca un producto para agregarlo.</div>'; }
   else box.innerHTML = S.cart.map((i,ix)=>`
-    <div class="citem"><div><b>${i.qty}× ${i.name}</b> — ${fmt(i.price*i.qty)}
-      ${i.flavors.length?`<br><span class="muted">${i.flavors.join(' / ')}</span>`:''}
+    <div class="citem"><div><b>${i.qty}× ${i.name}</b> — ${fmt(lineTotal(i))}
+      ${selTxt(i)?`<br><span class="muted">${selTxt(i)}</span>`:''}
       ${i.notes?`<br><span class="muted">“${i.notes}”</span>`:''}</div>
       <button class="rm" data-ix="${ix}" aria-label="Quitar">×</button></div>`).join('');
   $$('#cartItems .rm').forEach(b=>b.onclick=()=>{S.cart.splice(Number(b.dataset.ix),1);renderCart();});
@@ -470,16 +632,51 @@ function renderChange(){
 }
 $('#cPays').addEventListener('input', renderChange);
 function segWire(sel, cb){ $$(sel+' .chip').forEach(b=>b.onclick=()=>{ $$(sel+' .chip').forEach(x=>x.classList.remove('sel')); b.classList.add('sel'); cb(b.dataset.v); }); }
-segWire('#segType', v=>{ S.type=v; $('#addrBox').style.display = v==='Domicilio'?'':'none'; renderCart(); });
+segWire('#segType', v=>{ S.type=v; $('#schedBox').style.display = v==='Programado'?'':'none'; });
+let CLIENTS_CACHE = [];
+async function refreshClients(){ CLIENTS_CACHE = await idb.all('clients'); }
+function selectClient(c){
+  S.client = c;
+  $('#cliSel').style.display='';
+  $('#cliSel').innerHTML = `<span class="selchip">👤 ${c.generic?'Cliente genérico':(c.name||'—')+(c.phone?' · '+c.phone:'')+(c.house?' · Casa '+c.house:'')} <button id="cliClear" type="button" aria-label="Quitar">×</button></span>`;
+  $('#cliClear').onclick = clearClient;
+  $('#newCliBox').style.display='none';
+  $('#cliSug').innerHTML=''; $('#cliSearch').value='';
+}
+function clearClient(){ S.client=null; $('#cliSel').style.display='none'; $('#cliSel').innerHTML=''; $('#newCliBox').style.display=''; }
+$('#btnGenerico').onclick = ()=>selectClient({id:null, name:'', phone:'', house:'', generic:true});
+$('#cliSearch').addEventListener('input', ()=>{
+  const q = $('#cliSearch').value.trim().toLowerCase();
+  if(q.length<2){ $('#cliSug').innerHTML=''; return; }
+  const hits = CLIENTS_CACHE.filter(c=>(c.name||'').toLowerCase().includes(q)||(c.phone||'').includes(q)||(c.house||'').toLowerCase().includes(q)).slice(0,6);
+  $('#cliSug').innerHTML = hits.map(c=>`<button class="sug" type="button" data-cid="${c.id}"><b>${c.name||'—'}</b> · ${c.phone||'sin tel.'} · Casa ${c.house||'—'}</button>`).join('') ||
+    '<span class="muted small">Sin coincidencias; captura los datos abajo y se registrará.</span>';
+  $$('#cliSug .sug').forEach(b=>b.onclick=()=>{ const c=CLIENTS_CACHE.find(x=>x.id===b.dataset.cid); if(c) selectClient(c); });
+});
+async function resolveCustomer(){
+  if(S.client && S.client.generic) return {id:null, name:'', phone:'', address:'', refs:''};
+  if(S.client) return {id:S.client.id, name:S.client.name||'', phone:S.client.phone||'', address:S.client.house||'', refs:''};
+  const name=$('#cName').value.trim(), phone=$('#cPhone').value.trim(), house=$('#cAddr').value.trim();
+  const cust = {id:null, name, phone, address:house, refs:''};
+  if(name || phone){
+    const c = {id:uuid(), name, phone, house, updated_at:nowISO()};
+    await idb.put('clients', c); await sync.enqueue('client', c);
+    cust.id = c.id; refreshClients();
+  }
+  return cust;
+}
+segWire('#segMv',  v=>{ MVKIND=v; });
+segWire('#segRange', v=>{ TRANGE=Number(v); renderTendencias(); });
 segWire('#segPay',  v=>{ S.pay=v; $('#cashBox').style.display = v==='Efectivo'?'':'none'; renderChange(); });
 
-async function buildOrder(){
+async function buildOrder(cust){
   const t = cartTotals();
   return {
     id: uuid(), folio: await nextFolio(), status:'abierto',
     type: S.type,
-    customer:{ name:$('#cName').value.trim(), phone:$('#cPhone').value.trim(),
-               address: S.type==='Domicilio'?$('#cAddr').value.trim():'', refs:S.type==='Domicilio'?$('#cRefs').value.trim():'' },
+    scheduled_at: (S.type==='Programado' && $('#cSched').value) ? new Date($('#cSched').value).toISOString() : null,
+    note: $('#cNote').value.trim(),
+    customer: cust,
     payment:{ method:S.pay, pays: S.pay==='Efectivo'?(parseFloat($('#cPays').value)||0):0 },
     items: S.cart, subtotal:t.sub, delivery_fee:t.env, total:t.tot,
     created_at: nowISO(), updated_at: nowISO(), closed_at:null
@@ -487,9 +684,12 @@ async function buildOrder(){
 }
 async function doSave(goTicket){
   if(!S.cart.length){ toast('El pedido está vacío'); return; }
-  const o = await buildOrder();
+  const cust = await resolveCustomer();
+  const o = await buildOrder(cust);
   await saveOrder(o);
-  S.cart=[]; ['cName','cPhone','cAddr','cRefs','cPays'].forEach(id=>$('#'+id).value='');
+  await applyRecipeDiscount(o);
+  S.cart=[]; ['cName','cPhone','cAddr','cPays','cNote','cSched'].forEach(id=>$('#'+id).value='');
+  clearClient();
   renderCart(); renderComandas(); renderTickets(); updateKCount();
   toast('Pedido '+o.folio+' guardado');
   if(goTicket){ S.tkSel = o.id; switchView('tickets'); }
@@ -498,23 +698,34 @@ $('#btnSave').onclick = ()=>doSave(false);
 $('#btnSaveTicket').onclick = ()=>doSave(true);
 
 /* ================= VISTA: COMANDAS ================= */
-function elapsedMin(o){ return (Date.now() - new Date(o.created_at).getTime())/60000; }
-function elapsedTxt(o){ const s=Math.max(0,(Date.now()-new Date(o.created_at).getTime())/1000|0); return String(s/60|0).padStart(2,'0')+':'+String(s%60).padStart(2,'0'); }
+function baseTime(o){ return (o.type==='Programado' && o.scheduled_at) ? o.scheduled_at : o.created_at; }
+function elapsedMin(o){ return (Date.now() - new Date(baseTime(o)).getTime())/60000; }
+function elapsedTxt(o){ const x=Math.max(0,(Date.now()-new Date(baseTime(o)).getTime())/1000|0); return String(x/60|0).padStart(2,'0')+':'+String(x%60).padStart(2,'0'); }
+function schedTxt(iso){ return new Date(iso).toLocaleString('es-MX',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}); }
+let _kSeq = 0;
 async function renderComandas(){
+  const _my = ++_kSeq;
   const all = await idb.all('orders');
+  if(_my !== _kSeq) return; // un render más reciente ya fue solicitado: este se descarta
   const list = (S.kFilter==='open')
-    ? all.filter(o=>o.status==='abierto').sort((a,b)=>a.created_at<b.created_at?-1:1)
+    ? all.filter(o=>o.status==='abierto').sort((a,b)=>baseTime(a)<baseTime(b)?-1:1)
     : all.filter(o=>o.status==='completado' && todayKey(o.closed_at)===todayKey()).sort((a,b)=>a.closed_at<b.closed_at?1:-1);
   $('#kGrid').innerHTML = list.map(o=>{
-    const m = elapsedMin(o), cls = o.status!=='abierto' ? '' : (m>=CAT.settings.badMin?'bad':(m>=CAT.settings.warnMin?'warn':''));
+    const fut = new Date(baseTime(o)).getTime() > Date.now();
+    const m = elapsedMin(o), cls = (o.status!=='abierto'||fut) ? '' : (m>=CAT.settings.badMin?'bad':(m>=CAT.settings.warnMin?'warn':''));
+    const tdisp = o.status!=='abierto'
+      ? '✓ '+(o.closed_at?Math.max(0,Math.round((new Date(o.closed_at)-new Date(o.created_at))/60000))+' min':'')
+      : (fut ? '📅 '+schedTxt(baseTime(o)) : '⏱ '+elapsedTxt(o));
     return `<div class="kcard ${cls}" data-oid="${o.id}">
-      <div class="khead"><span>#${o.folio} · ${o.type}</span><span class="ktimer" data-created="${o.created_at}">⏱ ${o.status==='abierto'?elapsedTxt(o):'✓'}</span></div>
+      <div class="khead"><span>#${o.folio} · ${o.type}</span><span class="ktimer" ${o.status==='abierto'?`data-base="${baseTime(o)}"`:''}>${tdisp}</span></div>
       <div class="kbody">${o.items.map((it,ix)=>`
         <label class="kitem ${it.done?'done':''}"><input type="checkbox" data-ix="${ix}" ${it.done?'checked':''} ${o.status!=='abierto'?'disabled':''}>
-          <span>${it.qty}× ${it.name}${it.flavors.length?' — '+it.flavors.join(' / '):''}
+          <span>${it.qty}× ${it.name}${selTxt(it)?' — '+selTxt(it):''}
           ${it.notes?`<span class="note">“${it.notes}”</span>`:''}</span></label>`).join('')}
       </div>
-      ${o.customer.name||o.customer.phone?`<div class="kmeta">Cliente: ${o.customer.name||'—'} ${o.customer.phone?'· '+o.customer.phone:''}</div>`:''}
+      ${o.note?`<div class="kmeta">📝 ${o.note}</div>`:''}
+      ${o.scheduled_at?`<div class="kmeta">📅 Programado: ${schedTxt(o.scheduled_at)}</div>`:''}
+      ${o.customer.name||o.customer.phone||o.customer.address?`<div class="kmeta">Cliente: ${o.customer.name||'—'} ${o.customer.address?'· Casa '+o.customer.address:''} ${o.customer.phone?'· '+o.customer.phone:''}</div>`:''}
       ${o.status==='abierto'?`<div class="kfoot"><button class="btn kdone">✓ Completar pedido</button></div>`:''}
     </div>`;
   }).join('') || '<p style="color:var(--kmuted)">No hay comandas '+(S.kFilter==='open'?'abiertas':'completadas hoy')+'.</p>';
@@ -537,12 +748,18 @@ async function updateKCount(){
   const all = await idb.all('orders'); const n = all.filter(o=>o.status==='abierto').length;
   $('#kCount').textContent = n ? `(${n})` : '';
 }
-setInterval(()=>{ // tick de cronómetros sin re-render completo
-  $$('.ktimer').forEach(el=>{ if(!el.dataset.created) return;
-    const s=Math.max(0,(Date.now()-new Date(el.dataset.created).getTime())/1000|0);
-    if(el.textContent.startsWith('⏱')) el.textContent='⏱ '+String(s/60|0).padStart(2,'0')+':'+String(s%60).padStart(2,'0');
-    const card = el.closest('.kcard'); const m=s/60;
-    if(card && !card.querySelector('.kdone')) return;
+setInterval(()=>{
+  $$('.ktimer[data-base]').forEach(el=>{
+    const base = new Date(el.dataset.base).getTime();
+    const card = el.closest('.kcard');
+    if(base > Date.now()){
+      el.textContent = '📅 ' + schedTxt(el.dataset.base);
+      if(card) card.classList.remove('warn','bad');
+      return;
+    }
+    const x = Math.max(0,(Date.now()-base)/1000|0);
+    el.textContent = '⏱ ' + String(x/60|0).padStart(2,'0')+':'+String(x%60).padStart(2,'0');
+    const m = x/60;
     if(card){ card.classList.toggle('bad', m>=CAT.settings.badMin); card.classList.toggle('warn', m>=CAT.settings.warnMin && m<CAT.settings.badMin); }
   });
 }, 1000);
@@ -557,15 +774,16 @@ function ticketText(o, wa){
   if(o.customer.name) L.push('Cliente: '+o.customer.name);
   L.push('--------------------------------');
   o.items.forEach(i=>{
-    L.push(i.qty+'x '+i.name+(i.flavors.length?' ('+i.flavors.join(' / ')+')':'')+'  '+fmt(i.price*i.qty));
+    L.push(i.qty+'x '+i.name+(selTxt(i)?' ('+selTxt(i)+')':'')+'  '+fmt(lineTotal(i)));
     if(i.notes) L.push('   * '+i.notes);
   });
   L.push('--------------------------------');
   L.push('Subtotal: '+fmt(o.subtotal)+(o.delivery_fee?' · Envío: '+fmt(o.delivery_fee):''));
   L.push(B('TOTAL: '+fmt(o.total)));
   L.push('Pago: '+o.payment.method+(o.payment.method==='Efectivo'&&o.payment.pays?(' (paga '+fmt(o.payment.pays)+', cambio '+fmt(Math.max(0,o.payment.pays-o.total))+')'):''));
-  if(o.type==='Domicilio'){ L.push('Entrega: '+(o.customer.address||'—')); if(o.customer.refs) L.push('Ref: '+o.customer.refs); }
-  else L.push('Tipo: '+o.type);
+  L.push('Casa: '+(o.customer.address||'—'));
+  L.push('Tipo: '+o.type+(o.scheduled_at?(' · '+new Date(o.scheduled_at).toLocaleString('es-MX',{dateStyle:'short',timeStyle:'short'})):''));
+  if(o.note) L.push('Nota: '+o.note);
   L.push(''); L.push('¡Gracias por tu pedido! 🍗');
   return L.join('\n');
 }
@@ -604,18 +822,93 @@ function renderConfig(){
   $('#cfgWarn').value=s.warnMin??15; $('#cfgBad').value=s.badMin??25;
   idb.get('meta','prefix').then(p=>$('#cfgPrefix').value=p||'A');
   $('#cfgCats').value = CAT.categories.join(', ');
-  $('#cfgFlavors').value = CAT.flavors.join(', ');
-  $('#prodRows').innerHTML = CAT.products.map((p,ix)=>`
-    <tr data-ix="${ix}">
+  $('#prodRows').innerHTML = CAT.products.map(p=>`
+    <tr data-pid="${p.id}">
       <td><input class="pName" value="${p.name.replace(/"/g,'&quot;')}"></td>
       <td><input class="pPrice num" inputmode="decimal" value="${p.price}"></td>
       <td><input class="pCat" value="${p.cat}"></td>
-      <td style="text-align:center"><input type="checkbox" class="pFlav" style="width:24px;height:24px;min-height:24px" ${p.flavored?'checked':''}></td>
       <td><button class="rm pDel" style="background:none;color:var(--bad);font-weight:800;font-size:18px">×</button></td>
     </tr>`).join('');
   $$('#prodRows .pDel').forEach(b=>b.onclick=e=>{ e.target.closest('tr').remove(); });
+  renderLists(); renderCG(); renderClientsCfg();
   if(sync.configured()){ $('#cfgSbUrl').value=sync.cfg.url; $('#cfgSbKey').value=sync.cfg.key; }
 }
+function renderLists(){
+  $('#listRows').innerHTML = (CAT.optionLists||[]).map(l=>`<tr data-id="${l.id}">
+    <td><input class="lName" value="${l.name.replace(/"/g,'&quot;')}"></td>
+    <td><input class="lOpts" value="${l.options.map(o=>o.n+(o.p?' +'+o.p:'')).join(', ').replace(/"/g,'&quot;')}" style="width:100%"></td>
+    <td><button class="rm lDel" style="background:none;color:var(--bad);font-weight:800;font-size:18px">×</button></td></tr>`).join('');
+  $$('#listRows .lDel').forEach(b=>b.onclick=e=>e.target.closest('tr').remove());
+}
+$('#btnAddList').onclick=()=>{ const tr=document.createElement('tr'); tr.dataset.id=uuid();
+  tr.innerHTML=`<td><input class="lName" placeholder="Nombre de la lista"></td><td><input class="lOpts" placeholder="Opción 1, Opción 2 +15, …" style="width:100%"></td><td><button class="rm lDel" style="background:none;color:var(--bad);font-weight:800;font-size:18px">×</button></td>`;
+  $('#listRows').appendChild(tr); tr.querySelector('.lDel').onclick=()=>tr.remove(); };
+$('#btnSaveLists').onclick=async ()=>{
+  CAT.optionLists = $$('#listRows tr').map(tr=>({
+    id: tr.dataset.id,
+    name: tr.querySelector('.lName').value.trim(),
+    options: tr.querySelector('.lOpts').value.split(',').map(t=>{
+      const m = t.trim().match(/^(.*?)(?:\s*\+\s*\$?(\d+(?:\.\d+)?))?$/);
+      return m && m[1] ? {n:m[1].trim(), p:m[2]?parseFloat(m[2]):0} : null;
+    }).filter(Boolean)
+  })).filter(l=>l.name && l.options.length);
+  CAT.updated_at=nowISO(); await idb.put('meta',CAT,'catalog'); await sync.enqueue('catalog',CAT);
+  toast('Listas guardadas'); renderConfig();
+};
+function renderCG(){
+  const sel=$('#cgProd'); const cur=sel.value;
+  sel.innerHTML = CAT.products.map(p=>`<option value="${p.id}">${p.name}</option>`).join('');
+  if(cur && CAT.products.find(p=>p.id===cur)) sel.value=cur;
+  sel.onchange=renderCGRows; renderCGRows();
+}
+function cgRowHTML(g){ return `<div class="row cgrow" style="align-items:center;margin-top:6px;gap:8px;flex-wrap:wrap">
+  <input class="gName" value="${g?g.name.replace(/"/g,'&quot;'):''}" placeholder="Nombre (ej. Sabor)" style="width:130px">
+  <select class="gList" style="flex:1;min-width:150px">${(CAT.optionLists||[]).map(l=>`<option value="${l.id}" ${g&&g.listId===l.id?'selected':''}>${l.name}</option>`).join('')}</select>
+  <label style="margin:0;display:flex;align-items:center;gap:4px;font-size:11px"><input type="checkbox" class="gReq" style="width:22px;height:22px;min-height:22px" ${g&&g.required?'checked':''}>Obligatorio</label>
+  <label style="margin:0;display:flex;align-items:center;gap:4px;font-size:11px"><input type="checkbox" class="gMulti" style="width:22px;height:22px;min-height:22px" ${g&&g.multi?'checked':''}>Varios</label>
+  <button class="rm gDel" style="background:none;color:var(--bad);font-weight:800;font-size:18px">×</button></div>`; }
+function renderCGRows(){
+  const p = CAT.products.find(x=>x.id===$('#cgProd').value);
+  if(!p){ $('#cgRows').innerHTML=''; return; }
+  $('#cgRows').innerHTML = (p.groups||[]).map(g=>cgRowHTML(g)).join('') || '<p class="muted small">Sin complementos: este producto se agrega directo.</p>';
+  $$('#cgRows .gDel').forEach(b=>b.onclick=e=>e.target.closest('.cgrow').remove());
+}
+$('#cgAdd').onclick=()=>{ const ph=$('#cgRows p'); if(ph) ph.remove();
+  $('#cgRows').insertAdjacentHTML('beforeend', cgRowHTML(null));
+  $$('#cgRows .gDel').forEach(b=>b.onclick=e=>e.target.closest('.cgrow').remove()); };
+$('#cgSave').onclick=async ()=>{
+  const p = CAT.products.find(x=>x.id===$('#cgProd').value); if(!p) return;
+  p.groups = $$('#cgRows .cgrow').map(d=>({ name:d.querySelector('.gName').value.trim(),
+    listId:d.querySelector('.gList').value, required:d.querySelector('.gReq').checked, multi:d.querySelector('.gMulti').checked }))
+    .filter(g=>g.name && g.listId);
+  CAT.updated_at=nowISO(); await idb.put('meta',CAT,'catalog'); await sync.enqueue('catalog',CAT);
+  toast('Complementos guardados'); renderCGRows();
+};
+async function renderClientsCfg(){
+  const cls = (await idb.all('clients')).sort((a,b)=>(a.name||'').localeCompare(b.name||''));
+  $('#cliCount').textContent = '('+cls.length+')';
+  $('#cliRows').innerHTML = cls.map(c=>`<tr data-id="${c.id}">
+    <td><input class="cName2" value="${(c.name||'').replace(/"/g,'&quot;')}"></td>
+    <td><input class="cPhone2" value="${(c.phone||'').replace(/"/g,'&quot;')}" inputmode="tel"></td>
+    <td><input class="cHouse2" value="${(c.house||'').replace(/"/g,'&quot;')}"></td>
+    <td><button class="rm cDel" style="background:none;color:var(--bad);font-weight:800;font-size:18px">×</button></td></tr>`).join('') ||
+    '<tr><td colspan="4" class="muted">Aún no hay clientes registrados.</td></tr>';
+  $$('#cliRows .cDel').forEach(b=>b.onclick=e=>e.target.closest('tr').remove());
+}
+$('#btnAddCli').onclick=()=>{ const ph=$('#cliRows td[colspan]'); if(ph) ph.closest('tr').remove();
+  const tr=document.createElement('tr'); tr.dataset.id=uuid();
+  tr.innerHTML=`<td><input class="cName2" placeholder="Nombre"></td><td><input class="cPhone2" inputmode="tel" placeholder="55…"></td><td><input class="cHouse2" placeholder="Casa"></td><td><button class="rm cDel" style="background:none;color:var(--bad);font-weight:800;font-size:18px">×</button></td>`;
+  $('#cliRows').appendChild(tr); tr.querySelector('.cDel').onclick=()=>tr.remove(); };
+$('#btnSaveCli').onclick=async ()=>{
+  const prev = await idb.all('clients');
+  const rows = $$('#cliRows tr[data-id]').map(tr=>({ id:tr.dataset.id,
+    name:tr.querySelector('.cName2').value.trim(), phone:tr.querySelector('.cPhone2').value.trim(),
+    house:tr.querySelector('.cHouse2').value.trim(), updated_at:nowISO() })).filter(c=>c.name||c.phone);
+  const keep = new Set(rows.map(r=>r.id));
+  for(const old of prev){ if(!keep.has(old.id)){ await idb.del('clients', old.id); await sync.enqueue('client_del', {id:old.id}); } }
+  for(const c of rows){ await idb.put('clients', c); await sync.enqueue('client', c); }
+  await refreshClients(); toast('Clientes guardados'); renderClientsCfg();
+};
 $('#cfgSaveBiz').onclick = async ()=>{
   CAT.settings = { biz:$('#cfgBiz').value.trim()||'Fancy Nancy', bizPhone:$('#cfgBizPhone').value.trim(),
     envio:parseFloat($('#cfgEnvio').value)||0, warnMin:parseInt($('#cfgWarn').value)||15, badMin:parseInt($('#cfgBad').value)||25 };
@@ -626,24 +919,26 @@ $('#cfgSaveBiz').onclick = async ()=>{
   renderCart(); toast('Ajustes guardados');
 };
 $('#btnAddProd').onclick = ()=>{
-  const tb=$('#prodRows'); const tr=document.createElement('tr');
+  const tb=$('#prodRows'); const tr=document.createElement('tr'); tr.dataset.pid=uuid();
   tr.innerHTML=`<td><input class="pName" placeholder="Nombre"></td><td><input class="pPrice num" inputmode="decimal" value="0"></td>
-    <td><input class="pCat" value="${CAT.categories[0]}"></td><td style="text-align:center"><input type="checkbox" class="pFlav" style="width:24px;height:24px;min-height:24px"></td>
+    <td><input class="pCat" value="${CAT.categories[0]}"></td>
     <td><button class="rm pDel" style="background:none;color:var(--bad);font-weight:800;font-size:18px">×</button></td>`;
   tb.appendChild(tr); tr.querySelector('.pDel').onclick=()=>tr.remove();
 };
 $('#btnSaveCat').onclick = async ()=>{
   const cats = $('#cfgCats').value.split(',').map(x=>x.trim()).filter(Boolean);
-  const flavs = $('#cfgFlavors').value.split(',').map(x=>x.trim()).filter(Boolean);
-  const prods = $$('#prodRows tr').map((tr,ix)=>({
-    id: CAT.products[Number(tr.dataset.ix)]?.id || uuid(),
-    name: tr.querySelector('.pName').value.trim(),
-    price: parseFloat(tr.querySelector('.pPrice').value)||0,
-    cat: tr.querySelector('.pCat').value.trim(),
-    flavored: tr.querySelector('.pFlav').checked
-  })).filter(p=>p.name);
+  const prods = $$('#prodRows tr').map(tr=>{
+    const old = CAT.products.find(p=>p.id===tr.dataset.pid) || {};
+    return Object.assign({}, old, {
+      id: tr.dataset.pid || uuid(),
+      name: tr.querySelector('.pName').value.trim(),
+      price: parseFloat(tr.querySelector('.pPrice').value)||0,
+      cat: tr.querySelector('.pCat').value.trim(),
+      groups: old.groups||[], recipe: old.recipe||[]
+    });
+  }).filter(p=>p.name);
   if(!cats.length || !prods.length){ toast('Catálogo incompleto'); return; }
-  CAT.categories=cats; CAT.flavors=flavs; CAT.products=prods; CAT.updated_at=nowISO();
+  CAT.categories=cats; CAT.products=prods; CAT.updated_at=nowISO();
   await idb.put('meta', CAT, 'catalog');
   await sync.enqueue('catalog', CAT);
   renderCatalogUI(); renderConfig(); toast('Catálogo guardado');
@@ -661,7 +956,7 @@ $('#cfgSbTest').onclick = async ()=>{
 };
 $('#btnSyncNow').onclick = ()=>sync.run();
 $('#btnExport').onclick = async ()=>{
-  const data = { exported_at: nowISO(), catalog: CAT, orders: await idb.all('orders') };
+  const data = { exported_at: nowISO(), catalog: CAT, orders: await idb.all('orders'), movs: await idb.all('movs'), clients: await idb.all('clients') };
   const blob = new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
   const a = document.createElement('a'); a.href=URL.createObjectURL(blob);
   a.download = 'fancy-nancy-respaldo-'+todayKey()+'.json'; a.click(); URL.revokeObjectURL(a.href);
@@ -673,10 +968,167 @@ $('#impFile').onchange = async e=>{
     const data = JSON.parse(await f.text());
     if(data.catalog){ CAT=data.catalog; await idb.put('meta',CAT,'catalog'); }
     for(const o of (data.orders||[])) await idb.put('orders', o);
+    for(const m of (data.movs||[])) await idb.put('movs', m);
+    for(const c of (data.clients||[])) await idb.put('clients', c);
+    await refreshClients();
     renderCatalogUI(); renderConfig(); renderComandas(); renderTickets(); updateKCount();
     toast('Respaldo importado');
   }catch(err){ toast('Archivo inválido'); }
   e.target.value='';
+};
+
+/* ================= VISTA: INVENTARIO ================= */
+let MVKIND='entrada';
+async function stockMap(){
+  const movs = await idb.all('movs'); const m={};
+  movs.forEach(x=>{ m[x.ins]=(m[x.ins]||0)+x.qty; });
+  return m;
+}
+function insName(id){ const i=CAT.insumos.find(x=>x.id===id); return i?i.name:id; }
+async function renderInventario(){
+  if(!$('#invRows')) return;
+  const stock = await stockMap();
+  $('#invRows').innerHTML = CAT.insumos.map(i=>{
+    const st = Math.round((stock[i.id]||0)*100)/100, low = st < i.min;
+    return `<tr><td>${i.name}</td><td>${i.unit}</td><td><b>${st}</b></td><td>${i.min}</td>
+      <td><span style="color:${low?'var(--bad)':'var(--ok)'};font-weight:800">●</span> ${low?'BAJO':'OK'}</td></tr>`;
+  }).join('');
+  const lows = CAT.insumos.filter(i=>(stock[i.id]||0)<i.min).map(i=>i.name);
+  $('#invAlert').innerHTML = lows.length ? `<span style="color:var(--bad);font-weight:700">⚠ Stock bajo: ${lows.join(', ')}</span>` : '<span class="muted">Sin alertas de stock.</span>';
+  const cur = $('#mvIns').value;
+  $('#mvIns').innerHTML = CAT.insumos.map(i=>`<option value="${i.id}">${i.name} (${i.unit})</option>`).join('');
+  if(cur) $('#mvIns').value = cur;
+  const movs = (await idb.all('movs')).sort((a,b)=>a.ts<b.ts?1:-1).slice(0,25);
+  $('#kdxRows').innerHTML = movs.map(m=>`<tr><td>${new Date(m.ts).toLocaleString('es-MX',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}</td>
+    <td>${insName(m.ins)}</td><td>${m.reason}</td><td style="color:${m.qty<0?'var(--bad)':'var(--ok)'};font-weight:700">${m.qty>0?'+':''}${Math.round(m.qty*100)/100}</td><td>${m.ref||m.note||''}</td></tr>`).join('') || '<tr><td colspan="5" class="muted">Sin movimientos.</td></tr>';
+  renderInsEditor(); renderRecetas();
+}
+$('#mvApply').onclick = async ()=>{
+  const ins=$('#mvIns').value, q=parseFloat($('#mvQty').value);
+  if(!ins || !q || q<=0){ toast('Cantidad inválida'); return; }
+  const mv={ id:uuid(), ins, qty: MVKIND==='entrada'? q : -q, reason:MVKIND, note:$('#mvNote').value.trim(), ref:'', ts:nowISO() };
+  await idb.put('movs', mv); await sync.enqueue('mov', mv);
+  $('#mvQty').value=''; $('#mvNote').value='';
+  toast('Movimiento registrado'); renderInventario();
+};
+function renderInsEditor(){
+  $('#insRows').innerHTML = CAT.insumos.map(i=>`<tr data-id="${i.id}">
+    <td><input class="iName" value="${i.name.replace(/"/g,'&quot;')}"></td>
+    <td><input class="iUnit" value="${i.unit}" style="width:60px"></td>
+    <td><input class="iMin num" inputmode="decimal" value="${i.min}" style="width:70px"></td>
+    <td><button class="rm iDel" style="background:none;color:var(--bad);font-weight:800;font-size:18px">×</button></td></tr>`).join('');
+  $$('#insRows .iDel').forEach(b=>b.onclick=e=>e.target.closest('tr').remove());
+}
+$('#btnAddIns').onclick=()=>{ const tr=document.createElement('tr'); tr.dataset.id=uuid();
+  tr.innerHTML=`<td><input class="iName" placeholder="Nombre"></td><td><input class="iUnit" value="kg" style="width:60px"></td><td><input class="iMin num" inputmode="decimal" value="0" style="width:70px"></td><td><button class="rm iDel" style="background:none;color:var(--bad);font-weight:800;font-size:18px">×</button></td>`;
+  $('#insRows').appendChild(tr); tr.querySelector('.iDel').onclick=()=>tr.remove(); };
+$('#btnSaveIns').onclick=async ()=>{
+  CAT.insumos = $$('#insRows tr').map(tr=>({ id:tr.dataset.id, name:tr.querySelector('.iName').value.trim(),
+    unit:tr.querySelector('.iUnit').value.trim()||'pz', min:parseFloat(tr.querySelector('.iMin').value)||0 })).filter(i=>i.name);
+  CAT.updated_at=nowISO(); await idb.put('meta',CAT,'catalog'); await sync.enqueue('catalog',CAT);
+  toast('Insumos guardados'); renderInventario();
+};
+function renderRecetas(){
+  const sel=$('#rcProd'); const cur=sel.value;
+  sel.innerHTML = CAT.products.map(p=>`<option value="${p.id}">${p.name}</option>`).join('');
+  if(cur && CAT.products.find(p=>p.id===cur)) sel.value=cur;
+  sel.onchange=renderRecRows; renderRecRows();
+}
+function recRowHTML(r){ return `<div class="row recrow" style="align-items:center;margin-top:6px;gap:8px">
+  <select class="rIns" style="flex:1">${CAT.insumos.map(i=>`<option value="${i.id}" ${r&&r.ins===i.id?'selected':''}>${i.name} (${i.unit})</option>`).join('')}</select>
+  <input class="rQty num" inputmode="decimal" value="${r?r.qty:''}" placeholder="cant./unidad" style="width:110px">
+  <button class="rm rDel" style="background:none;color:var(--bad);font-weight:800;font-size:18px">×</button></div>`; }
+function renderRecRows(){
+  const p = CAT.products.find(x=>x.id===$('#rcProd').value);
+  if(!p){ $('#rcRows').innerHTML=''; return; }
+  $('#rcRows').innerHTML = (p.recipe||[]).map(r=>recRowHTML(r)).join('') || '<p class="muted small">Sin receta: este producto no descuenta inventario.</p>';
+  wireRecRows();
+}
+function wireRecRows(){ $$('#rcRows .rDel').forEach(b=>b.onclick=e=>e.target.closest('.recrow').remove()); }
+$('#rcAdd').onclick=()=>{ const ph=$('#rcRows p'); if(ph) ph.remove();
+  $('#rcRows').insertAdjacentHTML('beforeend', recRowHTML(null)); wireRecRows(); };
+$('#rcSave').onclick=async ()=>{
+  const p = CAT.products.find(x=>x.id===$('#rcProd').value); if(!p) return;
+  p.recipe = $$('#rcRows .recrow').map(d=>({ins:d.querySelector('.rIns').value, qty:parseFloat(d.querySelector('.rQty').value)||0})).filter(r=>r.qty>0);
+  CAT.updated_at=nowISO(); await idb.put('meta',CAT,'catalog'); await sync.enqueue('catalog',CAT);
+  toast('Receta guardada'); renderRecRows();
+};
+async function applyRecipeDiscount(o){
+  for(const it of o.items){
+    const p = CAT.products.find(x=>x.id===it.productId);
+    for(const r of ((p&&p.recipe)||[])){
+      const mv={ id:uuid(), ins:r.ins, qty:-(r.qty*it.qty), reason:'venta', note:'', ref:o.folio, ts:nowISO() };
+      await idb.put('movs', mv); await sync.enqueue('mov', mv);
+    }
+  }
+  if(S.view==='inventario') renderInventario();
+}
+
+/* ================= VISTA: TENDENCIAS ================= */
+let TRANGE=7;
+const DOW=['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+async function trendOrders(){
+  const start = new Date(); start.setHours(0,0,0,0); start.setDate(start.getDate()-(TRANGE-1));
+  return (await idb.all('orders')).filter(o=>o.status!=='cancelado' && new Date(o.created_at)>=start);
+}
+async function renderTendencias(){
+  if(!$('#kpiRow')) return;
+  const os = await trendOrders();
+  const rev = os.reduce((a,o)=>a+o.total,0);
+  const closed = os.filter(o=>o.closed_at);
+  const prep = closed.length ? closed.reduce((a,o)=>a+(new Date(o.closed_at)-new Date(o.created_at))/60000,0)/closed.length : 0;
+  $('#kpiRow').innerHTML = [
+    ['Ventas del periodo', fmt(rev)], ['Pedidos', os.length],
+    ['Ticket promedio', os.length?fmt(rev/os.length):'—'], ['Tiempo prep. prom.', closed.length?Math.round(prep)+' min':'—']
+  ].map(k=>`<div class="card kpi" style="flex:1;min-width:150px"><span class="muted small">${k[0]}</span><div style="font-size:22px;font-weight:800;margin-top:4px">${k[1]}</div></div>`).join('');
+  const byP={};
+  os.forEach(o=>o.items.forEach(i=>{ byP[i.name]=byP[i.name]||{u:0,r:0}; byP[i.name].u+=i.qty; byP[i.name].r+=lineTotal(i); }));
+  const top = Object.entries(byP).sort((a,b)=>b[1].r-a[1].r).slice(0,8);
+  const maxR = Math.max(1,...top.map(t=>t[1].r));
+  $('#chProd').innerHTML = top.map(([n,v])=>`<div class="hrow"><span class="hlbl">${n}</span>
+    <span class="htrack"><span class="hbar" style="width:${Math.round(v.r/maxR*100)}%"></span></span>
+    <span class="hval">${v.u} u · ${fmt(v.r)}</span></div>`).join('') || '<p class="muted small">Sin ventas en el rango.</p>';
+  const byH = Array(24).fill(0); os.forEach(o=>byH[new Date(o.created_at).getHours()]+=o.total);
+  const mH = Math.max(1,...byH);
+  $('#chHour').innerHTML = byH.map((v,h)=>`<div class="vcol"><div class="vb" style="height:${Math.round(v/mH*100)}%" title="${h}:00 — ${fmt(v)}"></div><span class="vlbl">${h%3===0?h:''}</span></div>`).join('');
+  const byD = Array(7).fill(0); os.forEach(o=>byD[new Date(o.created_at).getDay()]+=o.total);
+  const mD = Math.max(1,...byD);
+  $('#chDow').innerHTML = byD.map((v,d)=>`<div class="vcol"><div class="vb" style="height:${Math.round(v/mD*100)}%" title="${DOW[d]} — ${fmt(v)}"></div><span class="vlbl">${DOW[d]}</span></div>`).join('');
+  const hm = Array.from({length:7},()=>Array(24).fill(0));
+  os.forEach(o=>{ const d=new Date(o.created_at); hm[d.getDay()][d.getHours()]++; });
+  const mx = Math.max(1,...hm.flat());
+  $('#chHeat').innerHTML = '<div class="heat">' + hm.map((row,d)=>
+    `<span class="hl">${DOW[d]}</span>` + row.map((c,h)=>`<span class="hc" title="${DOW[d]} ${h}:00 — ${c} pedido(s)" style="background:rgba(255,87,34,${c?(0.15+0.85*c/mx).toFixed(2):0.05})"></span>`).join('')
+  ).join('') + '</div><div class="small muted" style="margin-top:6px">Horas 0–23 de izquierda a derecha. Más intenso = más pedidos.</div>';
+  const days = Math.max(1, new Set(os.map(o=>todayKey(o.created_at))).size);
+  const need={};
+  const projRows = Object.entries(byP).sort((a,b)=>b[1].u-a[1].u).map(([n,v])=>{
+    const perDay=v.u/days, p7=Math.ceil(perDay*7);
+    const prod=CAT.products.find(x=>x.name===n);
+    (((prod&&prod.recipe)||[])).forEach(r=>{ need[r.ins]=(need[r.ins]||0)+r.qty*p7; });
+    return `<tr><td>${n}</td><td>${perDay.toFixed(1)} u/día</td><td><b>${p7}</b> u</td></tr>`;
+  }).join('');
+  const stock = await stockMap();
+  const buyRows = Object.entries(need).map(([ins,q])=>{
+    const st=stock[ins]||0, falt=Math.max(0,q-st), iu=CAT.insumos.find(x=>x.id===ins);
+    return `<tr><td>${insName(ins)}</td><td>${Math.round(q*100)/100} ${iu?iu.unit:''}</td><td>${Math.round(st*100)/100}</td>
+      <td style="font-weight:800;color:${falt>0?'var(--bad)':'var(--ok)'}">${falt>0?('Comprar '+Math.round(falt*100)/100+' '+(iu?iu.unit:'')):'Suficiente'}</td></tr>`;
+  }).join('');
+  $('#chProj').innerHTML = `<div class="row" style="flex-wrap:wrap;gap:20px;margin-top:8px">
+    <table class="cat" style="flex:1;min-width:280px"><thead><tr><th>Producto</th><th>Promedio</th><th>Proyección 7d</th></tr></thead><tbody>${projRows||'<tr><td colspan="3" class="muted">Sin datos.</td></tr>'}</tbody></table>
+    <table class="cat" style="flex:1;min-width:280px"><thead><tr><th>Insumo</th><th>Necesario 7d</th><th>Stock</th><th>Sugerencia</th></tr></thead><tbody id="buyRows">${buyRows||'<tr><td colspan="4" class="muted">Define recetas en Inventario para recibir sugerencias de compra.</td></tr>'}</tbody></table>
+  </div><p class="muted small" style="margin-top:6px">Proyección por promedio simple del rango seleccionado; mejora conforme acumules semanas de datos.</p>`;
+}
+$('#btnCSV').onclick = async ()=>{
+  const os = (await trendOrders()).sort((a,b)=>a.created_at<b.created_at?-1:1);
+  const rows = [['folio','fecha','hora','cliente','casa','tipo','estado','pago','subtotal','envio','total','productos']];
+  os.forEach(o=>rows.push([o.folio, todayKey(o.created_at), new Date(o.created_at).toLocaleTimeString('es-MX'),
+    o.customer.name, o.customer.address||'', o.type, o.status, o.payment.method, o.subtotal, o.delivery_fee, o.total,
+    o.items.map(i=>i.qty+'x '+i.name+(selTxt(i)?' ('+selTxt(i)+')':'')).join(' | ')]));
+  const csv = '\ufeff'+rows.map(r=>r.map(c=>'"'+String(c).replace(/"/g,'""')+'"').join(',')).join('\n');
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8'}); const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob); a.download='fancy-nancy-ventas-'+todayKey()+'.csv'; a.click(); URL.revokeObjectURL(a.href);
+  toast('CSV exportado');
 };
 
 /* ================= NAVEGACIÓN ================= */
@@ -688,6 +1140,8 @@ function switchView(v){
   if(v==='comandas') renderComandas();
   if(v==='tickets') renderTickets();
   if(v==='config') renderConfig();
+  if(v==='inventario') renderInventario();
+  if(v==='tendencias') renderTendencias();
 }
 $$('.navbtn[data-view]').forEach(b=>b.onclick=()=>switchView(b.dataset.view));
 
@@ -696,7 +1150,13 @@ $$('.navbtn[data-view]').forEach(b=>b.onclick=()=>switchView(b.dataset.view));
   await openDB();
   CAT = (await idb.get('meta','catalog')) || JSON.parse(JSON.stringify(DEFAULT_CATALOG));
   if(!(await idb.get('meta','catalog'))) await idb.put('meta', CAT, 'catalog');
-  renderCatalogUI(); renderCart(); updateKCount(); updateNet();
+  if(!CAT.insumos){ CAT.insumos = JSON.parse(JSON.stringify(DEFAULT_CATALOG.insumos)); await idb.put('meta', CAT, 'catalog'); }
+  if(!CAT.optionLists){
+    CAT.optionLists = [{id:'L1', name:'Sabores', options:(CAT.flavors||[]).map(n=>({n,p:0}))}];
+    CAT.products.forEach(p=>{ p.groups = p.flavored ? [{name:'Sabor', listId:'L1', required:true, multi:true}] : []; });
+    CAT.updated_at = nowISO(); await idb.put('meta', CAT, 'catalog');
+  }
+  renderCatalogUI(); renderCart(); updateKCount(); updateNet(); await refreshClients();
   await sync.init();
   if('serviceWorker' in navigator && location.protocol.startsWith('http')){
     navigator.serviceWorker.register('sw.js').catch(()=>{});
