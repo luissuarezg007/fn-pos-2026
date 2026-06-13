@@ -1,5 +1,5 @@
 /* Fancy Nancy — Service Worker v1 (cache-first del app shell) */
-const CACHE = 'fancy-nancy-DEV-v2';
+const CACHE = 'fancy-nancy-DEV-v3';
 const SHELL = ['./', './index.html', './manifest.json', './icon-180.png', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', e => {

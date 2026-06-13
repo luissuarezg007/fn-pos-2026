@@ -135,7 +135,7 @@ table.cat input.num{width:84px}
   <button class="navbtn" data-view="inventario"><span class="ico">📦</span>Inventario</button>
   <button class="navbtn" data-view="tendencias"><span class="ico">📈</span>Tendencias</button>
   <button class="navbtn" data-view="config"><span class="ico">⚙️</span>Config</button>
-  <div id="netStatus"><span class="dot"></span> <span id="netText">—</span><br><span id="pendText"></span></div>
+  <div id="netStatus"><span class="dot"></span> <span id="netText">—</span><br><span id="pendText"></span><br><span id="verText" style="opacity:.6"></span></div>
 </nav>
 
 <main>
@@ -402,6 +402,7 @@ table.cat input.num{width:84px}
 
 <script>
 'use strict';
+const APP_VERSION = 'v12';
 /* ================= UTILIDADES ================= */
 const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
@@ -634,6 +635,7 @@ async function updateNet(){
   el.classList.toggle('online', navigator.onLine);
   $('#netText').textContent = navigator.onLine ? 'En línea' : 'Sin conexión';
   $('#pendText').textContent = pend ? pend + ' pendiente(s)' : (sync.configured() ? 'Sincronizado' : 'Solo local');
+  if($('#verText')) $('#verText').textContent = APP_VERSION;
 }
 window.addEventListener('online', ()=>{ updateNet(); sync.run(); });
 window.addEventListener('offline', updateNet);
