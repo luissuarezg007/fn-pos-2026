@@ -1323,14 +1323,18 @@ $('#impFile').onchange = async e=>{
   const f=e.target.files[0]; if(!f) return;
   try{
     const data = JSON.parse(await f.text());
-    if(data.catalog){ CAT=data.catalog; await idb.put('meta',CAT,'catalog'); }
-    for(const o of (data.orders||[])) await idb.put('orders', o);
-    for(const m of (data.movs||[])) await idb.put('movs', m);
-    for(const c of (data.clients||[])) await idb.put('clients', c);
+    const subir = sync.configured() && confirm('Importado correctamente.\n\n¿Subir también estos datos a la nube (Supabase) para sincronizarlos con los demás dispositivos?\n\nAceptar = subir a la nube · Cancelar = solo en este dispositivo');
+    if(data.catalog){ CAT=data.catalog; await idb.put('meta',CAT,'catalog'); if(subir) await sync.enqueue('catalog', CAT); }
+    for(const o of (data.orders||[])){ await idb.put('orders', o); if(subir) await sync.enqueue('order', o); }
+    for(const m of (data.movs||[])){ await idb.put('movs', m); if(subir) await sync.enqueue('mov', m); }
+    for(const c of (data.clients||[])){ await idb.put('clients', c); if(subir) await sync.enqueue('client', c); }
     await refreshClients();
     renderCatalogUI(); renderConfig(); renderComandas(); renderTickets(); updateKCount();
-    toast('Respaldo importado');
-  }catch(err){ toast('Archivo inválido'); }
+    const n=(data.orders||[]).length+(data.clients||[]).length+(data.movs||[]).length;
+    log('INFO','importar_respaldo','items='+n+' subir='+(subir?'si':'no'));
+    if(subir){ toast('Importado y sincronizando a la nube…'); sync.run(); }
+    else toast('Respaldo importado (solo este dispositivo)');
+  }catch(err){ toast('Archivo inválido'); log('ERROR-USER','importar_respaldo', err.message); }
   e.target.value='';
 };
 
