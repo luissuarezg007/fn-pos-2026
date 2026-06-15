@@ -402,7 +402,7 @@ table.cat input.num{width:84px}
 
 <script>
 'use strict';
-const APP_VERSION = 'v12';
+const APP_VERSION = 'v13';
 /* ================= UTILIDADES ================= */
 const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
@@ -621,7 +621,13 @@ const sync = {
     const rc = await fetch(this.cfg.url+'/rest/v1/app_config?id=eq.catalog&select=data',{headers:this.headers()});
     if(rc.ok){ const cr = await rc.json();
       const pendCat = (await idb.all('outbox')).some(x=>x.kind==='catalog');
-      if(!pendCat && cr.length && cr[0].data.updated_at > CAT.updated_at){ CAT = cr[0].data; await idb.put('meta', CAT, 'catalog'); renderCatalogUI(); renderConfig(); changed=true; }
+      // La nube manda: si NO tengo un guardado de catálogo pendiente de subir,
+      // adopto el de la nube cuando difiere del local (sin depender de relojes).
+      if(!pendCat && cr.length){
+        const remoto = cr[0].data;
+        const distinto = JSON.stringify(remoto) !== JSON.stringify(CAT);
+        if(distinto){ CAT = remoto; await idb.put('meta', CAT, 'catalog'); renderCatalogUI(); renderConfig(); changed=true; log('INFO','catalogo_nube','adoptado de la nube'); }
+      }
     }
     await idb.put('meta', maxTs, 'lastSync');
     if(changed){ renderComandas(); renderTickets(); renderInventario(); if(S.view==='tendencias') renderTendencias(); }
