@@ -50,12 +50,27 @@
 
 <hr>
 
-<h2>v14-beta — Feature 1/6: Logo nuevo 🟢 EN PRUEBA</h2>
+<h2>v14-beta — Feature 1/6: Logo nuevo ✅ APROBADO</h2>
 <ul>
 <li>Emblema de marca actualizado (gallo/rooster), fondo removido → PNG transparente.</li>
 <li>Se integra en el nav rail (<code>#nav .logo</code>) sin cambios de layout, tokens ni CSS.</li>
-<li>Rama de origen: <code>feature/logo</code> (desde <code>development</code>, base v13 real).</li>
-<li>Pendientes en la baraja v14-beta: add-ons por sabor, ticket 32 caracteres, modales Cobro/Confirm, reorden de Config, timer de cocina (Alexa/iPad).</li>
+<li>Rama: <code>feature/logo</code> → mergeado a <code>development</code>.</li>
+</ul>
+
+<hr>
+
+<h2>v14-beta — Feature 2/6: Add-ons por sabor 🟢 EN PRUEBA</h2>
+<ul>
+<li><b>Cambio de flujo:</b> tap en producto ahora abre un flujo nuevo tipo "teclado rápido" (reemplaza el modal clásico, que queda marcado en el código para revisión/eliminación tras el piloto).</li>
+<li>Paso 1: cantidad con teclado numérico grande.</li>
+<li>Paso 2: reparto por sabor tocando botones grandes (soporta mitad/mitad); cada sabor es su propia "partida" del carrito.</li>
+<li>Cada partida tiene sus propios chips de adicionales (ej. queso, tocino, aderezo extra).</li>
+<li>Config → Catálogo de productos: nuevo checkbox "Adicionales" por producto.</li>
+<li>Config → nueva sección "Catálogo de adicionales" para administrar nombre/precio.</li>
+<li>Seed inicial: 4 adicionales de ejemplo, activados en Alitas/Boneless/Papas.</li>
+<li>Fix aplicado: variable CSS <code>--accent-soft</code> faltante en el diseño original.</li>
+<li>Rama de origen: <code>feature/addons-sabor</code> (desde <code>development</code>, ya con el logo).</li>
+<li>Pendientes en la baraja v14-beta: ticket 32 caracteres, modales Cobro/Confirm, reorden de Config, timer de cocina (Alexa/iPad).</li>
 </ul>
 
 <h2>v9 — Cerveza, historial e identidad</h2>
