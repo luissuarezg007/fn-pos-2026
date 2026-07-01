@@ -12,7 +12,7 @@
 <style>
 :root{
   --bg:#FFF8F3; --card:#FFFFFF; --line:#EEDCD2; --ink:#4A3F38; --muted:#9C8C83;
-  --accent:#FF5722; --accent-ink:#FFFFFF; --nav:#2B2421; --nav-ink:#A89C94;
+  --accent:#FF5722; --accent-ink:#FFFFFF; --accent-soft:#FFE4D9; --nav:#2B2421; --nav-ink:#A89C94;
   --ok:#2E9E5B; --warn:#E8A020; --bad:#D23C3C;
   --kbg:#15181D; --kcard:#222730; --kline:#333A45; --kink:#E8E6E1; --kmuted:#9AA3AE;
   --kaccent:#FFB454; --kok:#34C16B; --kwarn:#FF9F1C; --kbad:#FF4D4D;
@@ -124,6 +124,74 @@ table.cat input.num{width:84px}
 .heat .hl{font-size:10px;color:var(--muted)}
 .heat .hc{display:block;aspect-ratio:1;border-radius:2px}
 @media print{ #nav,#tkList,.noprint{display:none!important} body{background:#fff} }
+
+/* ===== FLUJO RÁPIDO: cantidad -> sabores -> adicionales por partida ===== */
+#fastBack{display:none;position:fixed;inset:0;background:rgba(43,36,33,.45);z-index:80;align-items:center;justify-content:center;padding:18px}
+#fastBack.open{display:flex}
+#fastModal{background:#fff;border-radius:18px;width:min(660px,96vw);max-height:92vh;overflow:auto;padding:22px}
+.f-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+.f-crumbs{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:700;color:var(--muted);flex-wrap:wrap}
+.f-cr{display:inline-flex;align-items:center;gap:6px}.f-cr.on{color:var(--ink)}
+.f-cr .n{width:24px;height:24px;border-radius:50%;background:var(--bg);border:1px solid var(--line);display:grid;place-items:center;font-size:12px;font-weight:800}
+.f-cr.on .n{background:var(--accent);border-color:var(--accent);color:#fff}
+.f-cr.done .n{background:var(--ok);border-color:var(--ok);color:#fff}
+.f-x{width:40px;height:40px;border-radius:10px;border:1px solid var(--line);background:#fff;font-size:20px;font-weight:800;color:var(--muted)}
+.f-title{font-size:22px;font-weight:800;margin:2px 0 3px}
+.f-sub{font-size:14px;color:var(--muted);margin:0 0 16px}
+.f-qwrap{display:flex;gap:24px;flex-wrap:wrap;align-items:flex-start}
+.f-qdisp{flex:1;min-width:200px}
+.f-qbig{font-size:96px;font-weight:800;line-height:1;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.f-qbig .u{font-size:20px;font-weight:700;color:var(--muted);margin-left:8px}
+.f-qhint{font-size:14px;color:var(--muted);margin-top:8px}
+.f-qchips{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}
+.f-qchip{border:1.5px solid var(--line);background:#fff;border-radius:12px;padding:12px 18px;font-size:18px;font-weight:800;min-height:54px;min-width:60px}
+.f-keypad{display:grid;grid-template-columns:repeat(3,84px);gap:10px}
+.f-key{height:74px;border:1.5px solid var(--line);background:#fff;border-radius:14px;font-size:28px;font-weight:800;color:var(--ink)}
+.f-key.ok{background:var(--accent);border-color:var(--accent);color:#fff}
+.f-key.del{font-size:22px;color:var(--muted)}
+.f-counter{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:14px 17px;margin-bottom:14px}
+.f-counter .t{font-size:16px;font-weight:800}
+.f-counter .c{font-size:16px;font-weight:800}.f-counter .c.ok{color:var(--ok)}.f-counter .c.left{color:var(--accent)}
+.f-fgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:11px}
+.f-fbtn{position:relative;border:1.5px solid var(--line);background:#fff;border-radius:14px;padding:17px 16px;min-height:68px;text-align:left;font-size:18px;font-weight:700;display:flex;align-items:center;gap:10px;color:var(--ink)}
+.f-fbtn.has{border-color:var(--accent);background:var(--accent-soft)}
+.f-fbtn.pick{outline:3px solid var(--accent);outline-offset:2px}
+.f-rgt{margin-left:auto;display:flex;align-items:center;gap:8px;flex:none}
+.f-badge{min-width:34px;height:34px;border-radius:9px;background:var(--accent);color:#fff;font-size:17px;font-weight:800;display:grid;place-items:center;padding:0 8px}
+.f-dec{width:34px;height:34px;border-radius:9px;border:1px solid var(--accent);background:#fff;color:var(--accent);font-size:20px;font-weight:800}
+.f-tools{display:flex;gap:9px;flex-wrap:wrap;margin:14px 0}
+.f-tool{border:1.5px dashed var(--line);background:#fff;border-radius:12px;padding:13px 18px;font-size:15px;font-weight:800;color:var(--ink);min-height:50px}
+.f-tool.on{background:var(--accent);border-style:solid;border-color:var(--accent);color:#fff}
+.f-tool.fill{color:var(--accent);border-color:var(--accent)}
+.f-hint{font-size:15px;font-weight:700;color:var(--accent);background:var(--accent-soft);border-radius:11px;padding:12px 15px;margin:6px 0 12px;display:none}
+.f-hint.show{display:block}
+.f-phrase{font-size:17px;line-height:1.5;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-top:14px}
+.f-phrase .lead{display:block;font-size:11.5px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+.f-phrase .half{color:var(--accent);font-weight:800}
+.f-notes{width:100%;margin-top:10px;border:1px solid var(--line);border-radius:10px;padding:11px 13px;font-size:15px;font-family:inherit;resize:none}
+.f-check{display:flex;align-items:center;gap:10px;font-size:16px;font-weight:700;margin-top:18px;cursor:pointer}
+.f-check input{width:22px;height:22px;accent-color:var(--accent)}
+.f-adchips,.f-notechips{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.f-chip{border:1.5px solid var(--line);background:#fff;border-radius:999px;padding:9px 15px;font-size:14px;font-weight:700;color:var(--ink);min-height:42px}
+.f-chip.on{background:var(--accent-soft);border-color:var(--accent);color:var(--ink)}
+.f-seclbl{font-size:11.5px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin:18px 0 0}
+.f-stack{display:flex;flex-direction:column;gap:10px;margin-top:8px}
+.f-line{border:1.5px solid var(--line);border-radius:12px;padding:12px 13px;background:#fff}
+.f-line.split{border-color:var(--accent)}
+.f-line-hd{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.f-line-nm{font-size:16px;font-weight:800}
+.f-line.split .f-line-nm{color:var(--accent)}
+.f-stepper{display:flex;align-items:center;gap:10px;flex:none}
+.f-stepper button{width:36px;height:36px;border-radius:9px;border:1px solid var(--line);background:var(--bg);font-size:20px;font-weight:800;color:var(--ink);line-height:1}
+.f-stepper b{min-width:22px;text-align:center;font-size:17px;font-weight:800}
+.f-line-ad{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}
+.f-chip.sm{padding:7px 12px;font-size:13px;min-height:38px}
+.f-cta{display:flex;gap:10px;margin-top:16px}
+.f-cta .fb{border:none;border-radius:12px;padding:17px;font-size:18px;font-weight:800;font-family:inherit;flex:1}
+.f-cta .fb.primary{background:var(--accent);color:#fff}
+.f-cta .fb.primary:disabled{background:#E7D7CC}
+.f-cta .fb.ghost{flex:none;background:#fff;border:1px solid var(--line);color:var(--ink);padding:17px 20px}
+.f-revtag{display:inline-block;background:#D23C3C;color:#fff;font-size:10.5px;font-weight:800;padding:2px 8px;border-radius:6px;text-transform:uppercase;margin-left:8px;vertical-align:middle}
 </style>
 </head>
 <body>
@@ -365,13 +433,18 @@ table.cat input.num{width:84px}
         <table class="cat"><thead><tr><th style="width:160px">Lista</th><th>Opciones</th><th></th></tr></thead><tbody id="listRows"></tbody></table>
         <div class="row" style="margin:8px 0 4px"><button class="btn ghost" id="btnAddList">+ Lista</button><button class="btn primary" id="btnSaveLists">Guardar listas</button></div>
         <table class="cat" style="margin-top:12px">
-          <thead><tr><th>Producto</th><th>Precio</th><th>Categoría</th><th></th></tr></thead>
+          <thead><tr><th>Producto</th><th>Precio</th><th>Categoría</th><th style="width:70px">Adicionales</th><th></th></tr></thead>
           <tbody id="prodRows"></tbody>
         </table>
         <div class="row" style="margin-top:10px">
           <button class="btn ghost" id="btnAddProd">+ Agregar producto</button>
           <button class="btn primary" id="btnSaveCat">Guardar catálogo</button>
         </div>
+        <hr style="border:none;border-top:1px solid var(--line);margin:14px 0">
+        <b>Catálogo de adicionales (por sabor)</b>
+        <p class="small muted" style="margin:2px 0 8px">Se ofrecen en el flujo rápido solo para productos con "Adicionales" activo arriba.</p>
+        <table class="cat"><thead><tr><th>Nombre</th><th style="width:100px">Precio</th><th></th></tr></thead><tbody id="adRows"></tbody></table>
+        <div class="row" style="margin:8px 0 4px"><button class="btn ghost" id="btnAddAdic">+ Adicional</button><button class="btn primary" id="btnSaveAdic">Guardar adicionales</button></div>
         <hr style="border:none;border-top:1px solid var(--line);margin:14px 0">
         <b>Sabores y extras del producto</b>
         <label>Producto</label><select id="cgProd" style="width:100%;max-width:340px"></select>
@@ -395,6 +468,20 @@ table.cat input.num{width:84px}
       <button class="btn ghost" id="mCancel" style="flex:1">Cancelar</button>
       <button class="btn primary" id="mAdd" style="flex:1">Agregar — <span id="mPrice"></span></button>
     </div>
+  </div>
+</div>
+<!-- ⚠️ REVISAR: modal clásico (#modalBack / openModal) queda en desuso desde v14-beta,
+     reemplazado por el flujo rápido #fastBack (openFast) de abajo. Se deja intacto
+     para comparar en piloto; eliminar tras validar en vivo que nada más lo referencia. -->
+
+<!-- ============ FLUJO RÁPIDO (overlay) — v14-beta, feature 2/6 ============ -->
+<div id="fastBack">
+  <div id="fastModal">
+    <div class="f-head">
+      <div class="f-crumbs" id="fCrumbs"></div>
+      <button class="f-x" id="fClose" type="button">×</button>
+    </div>
+    <div id="fBody"></div>
   </div>
 </div>
 
@@ -654,9 +741,12 @@ function renderCatalogUI(){
   $('#prodGrid').innerHTML = CAT.products.filter(p=>p.cat===S.cat).map(p =>
     `<button class="prod" data-pid="${p.id}"><b>${p.name}</b><span class="pr">${fmt(p.price)}</span></button>`).join('') ||
     '<span class="muted">Sin productos en esta categoría.</span>';
-  $$('#prodGrid .prod').forEach(b => b.onclick = ()=> openModal(b.dataset.pid));
+  $$('#prodGrid .prod').forEach(b => b.onclick = ()=> openFast(b.dataset.pid));
 }
 function listById(id){ return (CAT.optionLists||[]).find(l=>l.id===id); }
+// ⚠️ REVISAR: openModal queda en desuso desde v14-beta (reemplazado por openFast, abajo).
+// No se llama desde ningún lado tras este cambio. Eliminar función completa
+// tras validar en piloto que no falta ningún caso de uso.
 function openModal(pid){
   const p = CAT.products.find(x=>x.id===pid); if(!p) return;
   S.modal = {prod:p, qty:1, sel:{}};
@@ -1147,6 +1237,14 @@ $('#btnWA').onclick = ()=>shareTicketImage(true);
 $('#btnPrint').onclick = ()=>window.print();
 
 /* ================= VISTA: CONFIG ================= */
+function renderAdic(){
+  $('#adRows').innerHTML = (CAT.addonList||[]).map(a=>`<tr>
+    <td><input class="adName" value="${a.n.replace(/"/g,'&quot;')}"></td>
+    <td><input class="adPrice num" inputmode="decimal" value="${a.p||0}" style="width:90px"></td>
+    <td><button class="rm adDel" style="background:none;color:var(--bad);font-weight:800;font-size:18px">×</button></td></tr>`).join('')
+    || '<tr><td colspan="3" class="muted small">Sin adicionales. Agrega el primero.</td></tr>';
+  $$('#adRows .adDel').forEach(b=>b.onclick=e=>e.target.closest('tr').remove());
+}
 function renderConfig(){
   const s = CAT.settings;
   $('#cfgBiz').value=s.biz||''; $('#cfgBizPhone').value=s.bizPhone||''; $('#cfgEnvio').value=s.envio??30;
@@ -1158,9 +1256,11 @@ function renderConfig(){
       <td><input class="pName" value="${p.name.replace(/"/g,'&quot;')}"></td>
       <td><input class="pPrice num" inputmode="decimal" value="${p.price}"></td>
       <td><input class="pCat" value="${p.cat}"></td>
+      <td style="text-align:center"><input type="checkbox" class="pAdic" style="width:24px;height:24px;min-height:24px;accent-color:var(--accent)" ${p.allowAddons?'checked':''}></td>
       <td><button class="rm pDel" style="background:none;color:var(--bad);font-weight:800;font-size:18px">×</button></td>
     </tr>`).join('');
   $$('#prodRows .pDel').forEach(b=>b.onclick=e=>{ e.target.closest('tr').remove(); });
+  renderAdic();
   renderLists(); renderCG(); renderClientsCfg(); renderLogView();
   if(sync.configured()){ $('#cfgSbUrl').value=sync.cfg.url; $('#cfgSbKey').value=sync.cfg.key; }
 }
@@ -1255,8 +1355,19 @@ $('#btnAddProd').onclick = ()=>{
   const tb=$('#prodRows'); const tr=document.createElement('tr'); tr.dataset.pid=uuid();
   tr.innerHTML=`<td><input class="pName" placeholder="Nombre"></td><td><input class="pPrice num" inputmode="decimal" value="0"></td>
     <td><input class="pCat" value="${CAT.categories[0]}"></td>
+    <td style="text-align:center"><input type="checkbox" class="pAdic" style="width:24px;height:24px;min-height:24px;accent-color:var(--accent)"></td>
     <td><button class="rm pDel" style="background:none;color:var(--bad);font-weight:800;font-size:18px">×</button></td>`;
   tb.appendChild(tr); tr.querySelector('.pDel').onclick=()=>tr.remove();
+};
+$('#btnAddAdic').onclick=()=>{ const ph=$('#adRows td[colspan]'); if(ph) ph.closest('tr').remove();
+  const tr=document.createElement('tr');
+  tr.innerHTML=`<td><input class="adName" placeholder="Ej. Queso"></td><td><input class="adPrice num" inputmode="decimal" value="0" style="width:90px"></td><td><button class="rm adDel" style="background:none;color:var(--bad);font-weight:800;font-size:18px">×</button></td>`;
+  $('#adRows').appendChild(tr); tr.querySelector('.adDel').onclick=()=>tr.remove(); };
+$('#btnSaveAdic').onclick=async ()=>{
+  CAT.addonList = $$('#adRows tr').map(tr=>{ const nEl=tr.querySelector('.adName'); if(!nEl) return null;
+    return { n:nEl.value.trim(), p:parseFloat(tr.querySelector('.adPrice').value)||0 }; }).filter(a=>a&&a.n);
+  CAT.updated_at=isoAfter(CAT.updated_at); await idb.put('meta',CAT,'catalog'); await sync.enqueue('catalog',CAT);
+  toast('Adicionales guardados'); renderCatalogUI(); renderConfig();
 };
 $('#btnSaveCat').onclick = async ()=>{
   const cats = $('#cfgCats').value.split(',').map(x=>x.trim()).filter(Boolean);
@@ -1267,6 +1378,7 @@ $('#btnSaveCat').onclick = async ()=>{
       name: tr.querySelector('.pName').value.trim(),
       price: parseFloat(tr.querySelector('.pPrice').value)||0,
       cat: tr.querySelector('.pCat').value.trim(),
+      allowAddons: tr.querySelector('.pAdic').checked,
       groups: old.groups||[], recipe: old.recipe||[]
     });
   }).filter(p=>p.name);
@@ -1534,6 +1646,11 @@ $$('.navbtn[data-view]').forEach(b=>b.onclick=()=>switchView(b.dataset.view));
     CAT.products.forEach(p=>{ p.groups = p.flavored ? [{name:'Sabor', listId:'L1', required:true, multi:true}] : []; });
     CAT.updated_at = isoAfter(CAT.updated_at); await idb.put('meta', CAT, 'catalog');
   }
+  if(!CAT.addonList){
+    CAT.addonList = [{n:'Queso',p:15},{n:'Aderezo extra',p:12},{n:'Tocino',p:20},{n:'Doble salsa',p:10}];
+    CAT.products.forEach(p=>{ if(['Alitas','Boneless','Papas'].includes(p.cat)) p.allowAddons=true; });
+    CAT.updated_at = isoAfter(CAT.updated_at); await idb.put('meta', CAT, 'catalog');
+  }
   renderCatalogUI(); renderCart(); updateKCount(); updateNet(); await refreshClients();
   await sync.init();
   if('serviceWorker' in navigator && location.protocol.startsWith('http')){
@@ -1542,6 +1659,98 @@ $$('.navbtn[data-view]').forEach(b=>b.onclick=()=>switchView(b.dataset.view));
   await initLog();
   log('INFO','arranque','app lista · '+navigator.userAgent.split(') ').pop());
   window.__FN_READY = true; // bandera para pruebas
+})();
+</script>
+<script>
+(function(){
+  const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+  const FS={pid:null,prod:null,g:null,gi:-1,flavors:null,step:1,qty:0,qStr:'',lines:[],splitMode:false,splitBuf:[],last:null,adList:[],noteTags:[],noteFree:''};
+  function flavGroup(p){ const gs=p.groups||[]; for(let i=0;i<gs.length;i++){ const L=listById(gs[i].listId); if(L) return {gi:i,g:gs[i],opts:L.options||[]}; } return null; }
+  window.openFast=function(pid){
+    const p=CAT.products.find(x=>x.id===pid); if(!p) return;
+    const fg=flavGroup(p);
+    FS.pid=pid; FS.prod=p; FS.g=fg?fg.g:null; FS.gi=fg?fg.gi:-1; FS.flavors=fg?fg.opts:null;
+    FS.step=1; FS.qty=0; FS.qStr=''; FS.lines=[]; FS.splitMode=false; FS.splitBuf=[]; FS.last=null; FS.noteTags=[]; FS.noteFree=''; FS.adList=(p.allowAddons?(CAT.addonList||[]):[]);
+    $('#fastBack').classList.add('open'); renderFast();
+  };
+  $('#fClose').onclick=()=>$('#fastBack').classList.remove('open');
+  $('#fastBack').onclick=e=>{ if(e.target.id==='fastBack') $('#fastBack').classList.remove('open'); };
+  function crumbs(active){ const has=!!FS.flavors; const labels=['Producto','Cuántas']; if(has) labels.push('Sabores'); return labels.map((l,i)=>{ const n=i+1; const cls='f-cr'+(n===active?' on':'')+(n<active?' done':''); return '<span class="'+cls+'"><span class="n">'+(n<active?'✓':n)+'</span>'+l+'</span>'; }).join('<span style="color:#D9CEC4">›</span>'); }
+  function renderFast(){ $('#fCrumbs').innerHTML=crumbs(FS.step); $('#fBody').innerHTML = FS.step===1 ? stepQty() : stepFlav(); wire(); }
+  function stepQty(){
+    const p=FS.prod;
+    return '<div class="f-title">'+p.name+' · ¿cuántas?</div>'
+      +'<p class="f-sub">'+fmt(p.price)+' c/u. Teclea la cantidad'+(FS.flavors?' y luego reparte los sabores.':'.')+'</p>'
+      +'<div class="f-qwrap"><div class="f-qdisp">'
+        +'<div class="f-qbig">'+(FS.qStr||'0')+'<span class="u">'+(FS.flavors?'partida(s)':'')+'</span></div>'
+        +'<div class="f-qhint">'+(FS.flavors?'Una partida por cada sabor que pidan.':'Sin sabor — se agrega directo.')+'</div>'
+        +'<div class="f-qchips">'+[1,2,3,6,12].map(n=>'<button class="f-qchip" data-qset="'+n+'">'+n+'</button>').join('')+'</div>'
+      +'</div><div class="f-keypad">'
+        +[1,2,3,4,5,6,7,8,9].map(n=>'<button class="f-key" data-k="'+n+'">'+n+'</button>').join('')
+        +'<button class="f-key del" data-k="del">⌫</button><button class="f-key" data-k="0">0</button><button class="f-key ok" data-k="ok">→</button>'
+      +'</div></div>';
+  }
+  function assignedCount(){ return FS.lines.reduce((a,l)=>a+l.qty,0); }
+  function lineQtyFor(f){ return FS.lines.filter(l=>l.flavor===f).reduce((a,l)=>a+l.qty,0); }
+  function lk(){ return 'L'+Date.now().toString(36)+Math.random().toString(36).slice(2,5); }
+  function stepFlav(){
+    const p=FS.prod, n=FS.qty, done=assignedCount(), left=n-done;
+    const adList=FS.adList||[];
+    const counter='<div class="f-counter"><span class="t">'+n+' × '+p.name+'</span><span class="c '+(left===0?'ok':'left')+'">'+(left===0?('Listo · '+n+'/'+n):('Asignadas '+done+' / '+n))+'</span></div>';
+    const grid='<div class="f-fgrid">'+FS.flavors.map(o=>{ const c=lineQtyFor(o.n); return '<button class="f-fbtn'+(c?' has':'')+(FS.splitMode&&FS.splitBuf[0]===o.n?' pick':'')+'" data-flav="'+o.n+'"><span>'+o.n+(o.p?' +'+o.p:'')+'</span>'+(c?'<span class="f-rgt"><span class="f-badge">'+c+'</span></span>':'')+'</button>'; }).join('')+'</div>';
+    const hint='<div class="f-hint'+(FS.splitMode?' show':'')+'">'+(FS.splitBuf.length===0?'Mitad y mitad — toca el 1.er sabor':'Mitad <b>'+FS.splitBuf[0]+'</b> y… toca el 2.º sabor')+' · <span style="text-decoration:underline" data-splitcancel>cancelar</span></div>';
+    const tools='<div class="f-tools"><button class="f-tool'+(FS.splitMode?' on':'')+'" data-split>½ Mitad y mitad</button>'+(left>0&&FS.last?'<button class="f-tool fill" data-fill>Completar con '+FS.last+' (×'+left+')</button>':'')+(FS.lines.length?'<button class="f-tool" data-clear>Vaciar</button>':'')+'</div>';
+    const stack=FS.lines.length?('<div class="f-seclbl">Sabores · cada uno con sus adicionales</div><div class="f-stack">'+FS.lines.map(l=>{
+      const label=l.split?('½ '+l.split[0]+' / mitad '+l.split[1]):l.flavor;
+      const adRow=adList.length?('<div class="f-line-ad">'+adList.map(a=>'<button class="f-chip sm'+(l.adic.find(x=>x.n===a.n)?' on':'')+'" data-lk="'+l.key+'" data-ladn="'+a.n.replace(/"/g,'&quot;')+'">'+a.n+(a.p?' +'+a.p:'')+'</button>').join('')+'</div>'):'';
+      return '<div class="f-line'+(l.split?' split':'')+'"><div class="f-line-hd"><span class="f-line-nm">'+label+'</span><span class="f-stepper"><button data-lminus="'+l.key+'">−</button><b>'+l.qty+'</b><button data-lplus="'+l.key+'">+</button></span></div>'+adRow+'</div>';
+    }).join('')+'</div>'):'';
+    const presets=(CAT.settings&&CAT.settings.notePresets)||[];
+    const noteBlock='<div class="f-seclbl">Nota</div>'+(presets.length?'<div class="f-notechips">'+presets.map(t=>'<button class="f-chip'+(FS.noteTags.includes(t)?' on':'')+'" data-note="'+t.replace(/"/g,'&quot;')+'">'+t+'</button>').join('')+'</div>':'')+'<textarea class="f-notes" id="fNotes" rows="2" placeholder="Otra nota a mano…">'+FS.noteFree+'</textarea>';
+    return '<div class="f-title">¿De qué? <span style="color:var(--muted);font-size:15px">y cómo</span></div>'
+      +'<p class="f-sub">Toca un sabor por cada partida. Abajo se apilan — ponle adicionales a cada uno.</p>'
+      +counter+hint+grid+tools+stack+noteBlock
+      +'<div class="f-cta"><button class="fb ghost" data-back>‹ Cambiar cantidad</button><button class="fb primary" id="fAdd"'+(left===0?'':' disabled')+'>Agregar a la comanda</button></div>';
+  }
+  function wire(){
+    $$('#fBody [data-k]').forEach(b=>b.onclick=()=>key(b.dataset.k));
+    $$('#fBody [data-qset]').forEach(b=>b.onclick=()=>{ FS.qStr=b.dataset.qset; commitQty(); });
+    const back=$('#fBody [data-back]'); if(back) back.onclick=()=>{ FS.step=1; FS.lines=[]; FS.splitMode=false; FS.splitBuf=[]; renderFast(); };
+    $$('#fBody [data-flav]').forEach(b=>b.onclick=()=>flavTap(b.dataset.flav));
+    $$('#fBody [data-dec]').forEach(b=>b.onclick=e=>{ e.stopPropagation(); dec(b.dataset.dec); });
+    const sp=$('#fBody [data-split]'); if(sp) sp.onclick=()=>{ FS.splitMode=!FS.splitMode; FS.splitBuf=[]; renderFast(); };
+    const spc=$('#fBody [data-splitcancel]'); if(spc) spc.onclick=()=>{ FS.splitMode=false; FS.splitBuf=[]; renderFast(); };
+    const fill=$('#fBody [data-fill]'); if(fill) fill.onclick=()=>{ const left=FS.qty-assignedCount(); const ln=FS.lines.find(l=>l.flavor===FS.last); if(ln) ln.qty+=left; else if(FS.last) FS.lines.push({key:lk(),flavor:FS.last,split:null,qty:left,adic:[]}); renderFast(); };
+    const clr=$('#fBody [data-clear]'); if(clr) clr.onclick=()=>{ FS.lines=[]; FS.splitMode=false; FS.splitBuf=[]; renderFast(); };
+    $$('#fBody [data-lplus]').forEach(b=>b.onclick=()=>lineStep(b.dataset.lplus,1));
+    $$('#fBody [data-lminus]').forEach(b=>b.onclick=()=>lineStep(b.dataset.lminus,-1));
+    $$('#fBody [data-ladn]').forEach(b=>b.onclick=()=>lineAdic(b.dataset.lk,b.dataset.ladn));
+    const nt=$('#fNotes'); if(nt) nt.oninput=()=>FS.noteFree=nt.value;
+    $$('#fBody [data-note]').forEach(b=>b.onclick=()=>{ const t=b.dataset.note; const i=FS.noteTags.indexOf(t); if(i>=0)FS.noteTags.splice(i,1); else FS.noteTags.push(t); renderFast(); });
+    const add=$('#fAdd'); if(add) add.onclick=commit;
+  }
+  function key(k){ if(k==='del'){FS.qStr=FS.qStr.slice(0,-1);renderFast();return;} if(k==='ok'){commitQty();return;} if(FS.qStr.length>=2)return; if(FS.qStr===''&&k==='0')return; FS.qStr+=k; renderFast(); }
+  function commitQty(){ const n=parseInt(FS.qStr||'0',10); if(!n){toast('Teclea una cantidad');return;} FS.qty=n; if(!FS.flavors){ pushSimple(); return; } FS.assign=[]; FS.step=2; renderFast(); }
+  function flavTap(f){ if(FS.splitMode){ FS.splitBuf.push(f); if(FS.splitBuf.length===2){ if(assignedCount()<FS.qty) FS.lines.push({key:lk(),flavor:null,split:[FS.splitBuf[0],FS.splitBuf[1]],qty:1,adic:[]}); FS.splitMode=false; FS.splitBuf=[]; FS.last=f; } renderFast(); return; } if(assignedCount()>=FS.qty){ toast('Ya asignaste las '+FS.qty); return; } const ln=FS.lines.find(l=>l.flavor===f); if(ln) ln.qty++; else FS.lines.push({key:lk(),flavor:f,split:null,qty:1,adic:[]}); FS.last=f; renderFast(); }
+  function lineStep(key,d){ const l=FS.lines.find(x=>x.key===key); if(!l)return; if(d>0){ if(assignedCount()>=FS.qty){toast('Ya asignaste las '+FS.qty);return;} l.qty++; } else { l.qty--; if(l.qty<=0) FS.lines=FS.lines.filter(x=>x.key!==key); } renderFast(); }
+  function lineAdic(key,n){ const l=FS.lines.find(x=>x.key===key); if(!l)return; const a=(FS.adList||[]).find(x=>x.n===n); const i=l.adic.findIndex(x=>x.n===n); if(i>=0)l.adic.splice(i,1); else if(a)l.adic.push({n:a.n,p:a.p||0}); renderFast(); }
+  function optP(name){ const o=(FS.flavors||[]).find(x=>x.n===name); return o?(o.p||0):0; }
+  function pushSimple(){ S.cart.push({ id:uuid(), productId:FS.prod.id, name:FS.prod.name, qty:FS.qty, price:FS.prod.price, extra:0, sel:[], flavors:[], notes:'', done:false }); $('#fastBack').classList.remove('open'); renderCart(); toast(FS.qty+'× '+FS.prod.name+' agregado'); }
+  function commit(){
+    if(assignedCount()!==FS.qty || !FS.lines.length) return;
+    const gName=FS.g?FS.g.name:'Sabor';
+    const notes=[...FS.noteTags, FS.noteFree.trim()].filter(Boolean).join(' · ');
+    FS.lines.forEach(l=>{
+      const adE=l.adic.reduce((a,o)=>a+(o.p||0),0);
+      const adSel=l.adic.length?{g:'Adicionales',gp:0,opts:l.adic.map(o=>({n:o.n,p:o.p||0}))}:null;
+      let fname, fp;
+      if(l.split){ const pa=optP(l.split[0]),pb=optP(l.split[1]); fp=Math.round((pa+pb)/2); fname='½ '+l.split[0]+' / '+l.split[1]; }
+      else { fname=l.flavor; fp=optP(l.flavor); }
+      const sel=[{g:gName,gp:0,opts:[{n:fname,p:fp}]}]; if(adSel) sel.push(adSel);
+      S.cart.push({ id:uuid(), productId:FS.prod.id, name:FS.prod.name, qty:l.qty, price:FS.prod.price, extra:fp+adE, sel, flavors:[], notes, done:false });
+    });
+    $('#fastBack').classList.remove('open'); renderCart(); toast(FS.qty+'× '+FS.prod.name+' agregado');
+  }
 })();
 </script>
 </body>
