@@ -847,15 +847,25 @@ $('#cliSearch').addEventListener('input', ()=>{
     '<span class="muted small">Sin coincidencias; captura los datos abajo y se registrará.</span>';
   $$('#cliSug .sug').forEach(b=>b.onclick=()=>{ const c=CLIENTS_CACHE.find(x=>x.id===b.dataset.cid); if(c) selectClient(c); });
 });
+function normPhone(p){ return (p||'').replace(/\D/g,''); }
 async function resolveCustomer(){
   if(S.client && S.client.generic) return {id:null, name:'', phone:'', address:'', refs:''};
   if(S.client) return {id:S.client.id, name:S.client.name||'', phone:S.client.phone||'', address:S.client.house||'', refs:''};
   const name=$('#cName').value.trim(), phone=$('#cPhone').value.trim(), house=$('#cAddr').value.trim();
   const cust = {id:null, name, phone, address:house, refs:''};
   if(name || phone){
-    const c = {id:uuid(), name, phone, house, updated_at:nowISO()};
+    // Evita colisión con la nube: si ya existe un cliente con el mismo teléfono
+    // (capturado a mano sin tocar la sugerencia), reutiliza su id en vez de crear
+    // un duplicado. Modelo "cloud-always-wins" para datos de clientes.
+    const np = normPhone(phone);
+    let existing = null;
+    if(np){ await refreshClients(); existing = CLIENTS_CACHE.find(c=>normPhone(c.phone)===np); }
+    const c = existing
+      ? Object.assign({}, existing, { name: name||existing.name, house: house||existing.house, updated_at: nowISO() })
+      : { id:uuid(), name, phone, house, updated_at:nowISO() };
     await idb.put('clients', c); await sync.enqueue('client', c);
-    cust.id = c.id; refreshClients();
+    cust.id = c.id; cust.name = c.name; cust.phone = c.phone; cust.address = c.house;
+    await refreshClients();
   }
   return cust;
 }
