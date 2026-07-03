@@ -73,6 +73,17 @@
 <li>Pendientes en la baraja v14-beta: ticket 32 caracteres, modales Cobro/Confirm, reorden de Config, timer de cocina (Alexa/iPad).</li>
 </ul>
 
+<hr>
+
+<h2>fix/clients-cloud-wins 🟢 EN PRUEBA (independiente de v14-beta)</h2>
+<ul>
+<li>Reaplica la decisión de negocio "clientes: modelo cloud-always-wins" que se había entregado como ZIP en una sesión anterior y nunca llegó a git.</li>
+<li><b>Causa raíz corregida:</b> al capturar teléfono/nombre a mano (sin tocar la sugerencia de autocompletar), <code>resolveCustomer()</code> siempre creaba un cliente nuevo con id distinto — generando duplicados contra la nube.</li>
+<li>Ahora deduplica por teléfono normalizado: si ya existe un cliente con ese teléfono, reutiliza su id y actualiza nombre/casa en vez de crear uno nuevo.</li>
+<li>Rama: <code>fix/clients-cloud-wins</code> (desde <code>development</code>).</li>
+<li>Para probar: en "Nuevo pedido" → Cliente y entrega, captura a mano (sin tocar sugerencias) un teléfono que ya exista en tu catálogo de clientes → verifica en Config → Clientes que no se duplicó.</li>
+</ul>
+
 <h2>v9 — Cerveza, historial e identidad</h2>
 <ul>
 <li>Cerveza con sabor independiente (sin costo) y cerillito como extra con costo, en grupos separados.</li>
