@@ -97,6 +97,13 @@
 <li>Rama <code>feature/kitchen-timer</code> (depende de los modales del punto 4).</li>
 </ul>
 
+<h3>7 · Franja de ambiente dev/prod + limpieza 🟢 EN PRUEBA</h3>
+<ul>
+<li>El nav rail se pone rojo automáticamente cuando la app corre bajo <code>/dev/</code> (o con <code>?env=dev</code>) y queda café espresso en producción — sin configuración manual, coincide con el deploy del repo.</li>
+<li>Se quitaron las marcas rojas de revisión que habían quedado de iteraciones previas (badge "nuevo flujo" y borde punteado de captura).</li>
+<li>Rama <code>feature/env-flag-cleanup</code>.</li>
+</ul>
+
 <h3>+ Fix · Clientes cloud-always-wins 🟢 EN PRUEBA</h3>
 <ul>
 <li>Corrige duplicados de clientes contra la nube: al capturar teléfono a mano (sin tocar la sugerencia), <code>resolveCustomer()</code> ahora deduplica por teléfono normalizado y reutiliza el cliente existente en vez de crear uno nuevo.</li>
