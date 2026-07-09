@@ -50,85 +50,63 @@
 
 <hr>
 
-<h2>v14-beta — Feature 1/6: Logo nuevo ✅ APROBADO</h2>
+<h2>v14-beta — Ciclo de 6 features + fix de clientes 🟢 EN PRUEBA</h2>
+<p>Todas las mejoras de este ciclo se agrupan bajo <b>v14-beta</b>. Se desarrollaron como ramas <code>feature/*</code> independientes (cada una mergeable por separado) y se pilotean juntas en <code>/dev</code> antes de promover a producción.</p>
+
+<h3>1 · Logo nuevo ✅ APROBADO</h3>
 <ul>
-<li>Emblema de marca actualizado (gallo/rooster), fondo removido → PNG transparente.</li>
-<li>Se integra en el nav rail (<code>#nav .logo</code>) sin cambios de layout, tokens ni CSS.</li>
-<li>Rama: <code>feature/logo</code> → mergeado a <code>development</code>.</li>
+<li>Emblema de marca actualizado (gallo/rooster), fondo transparente, integrado en el nav rail sin cambios de layout.</li>
+<li>Rama <code>feature/logo</code> → ya mergeada a <code>development</code>.</li>
 </ul>
 
-<hr>
-
-<h2>v14-beta — Feature 2/6: Add-ons por sabor 🟢 EN PRUEBA</h2>
+<h3>2 · Add-ons por sabor 🟢 EN PRUEBA</h3>
 <ul>
-<li><b>Cambio de flujo:</b> tap en producto ahora abre un flujo nuevo tipo "teclado rápido" (reemplaza el modal clásico, que queda marcado en el código para revisión/eliminación tras el piloto).</li>
-<li>Paso 1: cantidad con teclado numérico grande.</li>
-<li>Paso 2: reparto por sabor tocando botones grandes (soporta mitad/mitad); cada sabor es su propia "partida" del carrito.</li>
-<li>Cada partida tiene sus propios chips de adicionales (ej. queso, tocino, aderezo extra).</li>
-<li>Config → Catálogo de productos: nuevo checkbox "Adicionales" por producto.</li>
-<li>Config → nueva sección "Catálogo de adicionales" para administrar nombre/precio.</li>
-<li>Seed inicial: 4 adicionales de ejemplo, activados en Alitas/Boneless/Papas.</li>
-<li>Fix aplicado: variable CSS <code>--accent-soft</code> faltante en el diseño original.</li>
-<li>Rama de origen: <code>feature/addons-sabor</code> (desde <code>development</code>, ya con el logo).</li>
-<li>Pendientes en la baraja v14-beta: ticket 32 caracteres, modales Cobro/Confirm, reorden de Config, timer de cocina (Alexa/iPad).</li>
+<li>Nuevo flujo rápido de captura: tap en producto → cantidad (teclado grande) → reparto por sabor (soporta mitad/mitad) → adicionales por cada partida.</li>
+<li>Cada sabor elegido es su propia línea del carrito con sus propios adicionales.</li>
+<li>Config → Catálogo de productos: checkbox "Adicionales" por producto + nueva sección "Catálogo de adicionales".</li>
+<li>El modal clásico de captura queda marcado como código en desuso (a eliminar tras el piloto).</li>
+<li>Rama <code>feature/addons-sabor</code>.</li>
 </ul>
 
-<hr>
-
-<h2>fix/clients-cloud-wins 🟢 EN PRUEBA (independiente de v14-beta)</h2>
+<h3>3 · Ticket word-wrap + WhatsApp click-to-chat 🟢 EN PRUEBA</h3>
 <ul>
-<li>Reaplica la decisión de negocio "clientes: modelo cloud-always-wins" que se había entregado como ZIP en una sesión anterior y nunca llegó a git.</li>
-<li><b>Causa raíz corregida:</b> al capturar teléfono/nombre a mano (sin tocar la sugerencia de autocompletar), <code>resolveCustomer()</code> siempre creaba un cliente nuevo con id distinto — generando duplicados contra la nube.</li>
-<li>Ahora deduplica por teléfono normalizado: si ya existe un cliente con ese teléfono, reutiliza su id y actualiza nombre/casa en vez de crear uno nuevo.</li>
-<li>Rama: <code>fix/clients-cloud-wins</code> (desde <code>development</code>).</li>
-<li>Para probar: en "Nuevo pedido" → Cliente y entrega, captura a mano (sin tocar sugerencias) un teléfono que ya exista en tu catálogo de clientes → verifica en Config → Clientes que no se duplicó.</li>
+<li>Los renglones largos del ticket se reparten por palabra a 32 caracteres (rollo 58mm) con sangría, sin truncar. Un mismo formateo alimenta impresión, imagen y WhatsApp.</li>
+<li>Botón "Enviar por WhatsApp" abre <code>wa.me</code> con el número del cliente y el ticket ya escrito (números MX de 10 dígitos se prefijan con 52; sin teléfono, abre el selector de contactos). El botón muestra el teléfono del cliente cuando está guardado.</li>
+<li>Envío 100% automático requeriría WhatsApp Business Platform + backend (fuera de alcance).</li>
+<li>Rama <code>feature/ticket-wrap-whatsapp</code>.</li>
 </ul>
 
-<hr>
-
-<h2>v14-beta — Feature 3/6: Ticket word-wrap + WhatsApp click-to-chat 🟢 EN PRUEBA</h2>
-<ul>
-<li>Los renglones largos del ticket (partidas con sabor + adicionales, notas) ahora se reparten por palabra a 32 caracteres (ancho del rollo de 58mm), con sangría — nunca truncan.</li>
-<li>Cada partida de sabor/adicional se muestra en su propia línea con el precio alineado a la derecha (antes iba todo en un paréntesis largo sin envolver).</li>
-<li>El mismo texto formateado alimenta impresión, imagen compartida y ahora también WhatsApp.</li>
-<li><b>WhatsApp click-to-chat real (sin backend):</b> el botón "Enviar por WhatsApp" ahora abre <code>wa.me</code> con el número del cliente y el ticket ya escrito — el mesero solo toca Enviar. Números MX de 10 dígitos se anteponen con 52. Sin teléfono guardado → abre el selector de contactos de WhatsApp.</li>
-<li>Envío 100% automático (sin que nadie toque nada) requeriría WhatsApp Business Platform + backend — fuera de alcance de este piloto.</li>
-<li>Rama: <code>feature/ticket-wrap-whatsapp</code> (desde <code>development</code>, independiente de add-ons por sabor aunque se prueban juntas aquí).</li>
-<li>Para probar: abre cualquier ticket con varios adicionales/notas largas → confirma que envuelve bien y no se corta → toca "Enviar por WhatsApp".</li>
-<li>Pendientes en la baraja v14-beta: modales Cobro/Confirm, reorden de Config, timer de cocina (Alexa/iPad).</li>
-</ul>
-
-<hr>
-
-<h2>v14-beta — Feature 4/6: Modales Cobro/Confirm 🟢 EN PRUEBA</h2>
+<h3>4 · Modales Cobro/Confirm 🟢 EN PRUEBA</h3>
 <ul>
 <li>Se eliminan todos los diálogos nativos del navegador (<code>confirm()</code>), reemplazados por modales propios estilizados.</li>
-<li><b>Cobro:</b> al marcar un pedido como cobrado desde Tickets, abre un modal con total grande, Efectivo/Transferencia, "paga con" + cambio en vivo, y montos rápidos ($200/$500/$1000/exacto).</li>
-<li><b>Confirmación:</b> cancelar platillo, cancelar pedido y borrar bitácora ahora usan un modal de confirmación estilizado.</li>
-<li>Rama: <code>feature/cobro-confirm-modals</code>.</li>
-<li>Para probar: en Comandas cancela un platillo/pedido; en Tickets marca un pedido completado como cobrado (debe abrir el modal de cobro).</li>
+<li>Cobro: modal con total grande, Efectivo/Transferencia, "paga con" + cambio en vivo y montos rápidos. Confirmación: modal estilizado para cancelar platillo/pedido y borrar bitácora.</li>
+<li>Rama <code>feature/cobro-confirm-modals</code>.</li>
 </ul>
 
-<hr>
-
-<h2>v14-beta — Feature 5/6: Reordenamiento de Config + Horario/notas 🟢 EN PRUEBA</h2>
+<h3>5 · Reordenamiento de Config + Horario/notas 🟢 EN PRUEBA</h3>
 <ul>
 <li>Config reordenado: arriba las tarjetas rápidas (Negocio · Sincronización · Respaldo local · Horario y notas rápidas); abajo las anchas (Catálogo de clientes · Diagnóstico · Catálogo de productos).</li>
-<li><b>Nueva tarjeta "Horario y notas rápidas":</b> define días/horas de apertura y administra las notas rápidas (chips que aparecen al tomar el pedido en el flujo rápido).</li>
-<li>Seed inicial: 6 notas de ejemplo + horario 12:00–23:00.</li>
-<li>Rama: <code>feature/config-reorder</code>.</li>
+<li>Nueva tarjeta "Horario y notas rápidas": días/horas de apertura + administrador de las notas rápidas que aparecen como chips al tomar el pedido.</li>
+<li>Rama <code>feature/config-reorder</code>.</li>
 </ul>
 
-<hr>
-
-<h2>v14-beta — Feature 6/6: Timer de cocina 🟢 EN PRUEBA</h2>
+<h3>6 · Timer de cocina 🟢 EN PRUEBA</h3>
 <ul>
-<li>En "Nuevo pedido", bajo los botones de Guardar: presets 1–7 min. Un toque inicia la cuenta regresiva; permite varios timers a la vez.</li>
-<li>Al llegar a 0: alarma (beep en bucle), chip parpadea rojo, aviso (toast) y notificación web si hay permiso. Botón "Detener" corta la alarma.</li>
-<li>Los timers sobreviven a recargar la página (se guardan como hora de fin absoluta).</li>
-<li>Selector iPad/Alexa en el encabezado del timer.</li>
-<li><b>Importante:</b> la parte de Alexa es una <b>demostración</b> (conexión simulada). El anuncio real en un Echo requiere cuenta de desarrollador Amazon + una Alexa Skill con backend — eso queda <b>fuera de alcance</b> de este piloto y sería trabajo aparte de infraestructura.</li>
-<li>Rama: <code>feature/kitchen-timer</code> (depende de los modales del Feature 4).</li>
+<li>En "Nuevo pedido": presets 1–7 min; un toque inicia la cuenta regresiva; permite varios timers a la vez. Al llegar a 0: alarma (beep en bucle), chip parpadea rojo, toast y notificación web. Los timers sobreviven a recargar la página.</li>
+<li>Selector iPad/Alexa en el encabezado. <b>Alexa es una demostración</b> (conexión simulada): el anuncio real en un Echo requiere cuenta de desarrollador Amazon + Alexa Skill + backend, <b>fuera de alcance</b> de este piloto.</li>
+<li>Rama <code>feature/kitchen-timer</code> (depende de los modales del punto 4).</li>
+</ul>
+
+<h3>+ Fix · Clientes cloud-always-wins 🟢 EN PRUEBA</h3>
+<ul>
+<li>Corrige duplicados de clientes contra la nube: al capturar teléfono a mano (sin tocar la sugerencia), <code>resolveCustomer()</code> ahora deduplica por teléfono normalizado y reutiliza el cliente existente en vez de crear uno nuevo.</li>
+<li>Reaplica una decisión de negocio previa que se había entregado como ZIP y nunca llegó a git. Rama <code>fix/clients-cloud-wins</code>.</li>
+</ul>
+
+<h3>Infraestructura de piloto</h3>
+<ul>
+<li>Ambiente <code>/dev</code> aislado de producción: IndexedDB (<code>fancy-nancy-DEV</code>), localStorage, bitácora y timers (<code>fnTimers_DEV</code>) todos con sufijo DEV. Nav rail en rojo vía detector <code>IS_DEV</code>.</li>
+<li>El <code>sw.js</code> de <code>/dev</code> bumpea su versión de caché en cada publicación para forzar la actualización sin limpiar caché a mano.</li>
 </ul>
 
 <h2>v9 — Cerveza, historial e identidad</h2>

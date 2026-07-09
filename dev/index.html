@@ -124,6 +124,8 @@ table.cat input.num{width:84px}
 .heat .hl{font-size:10px;color:var(--muted)}
 .heat .hc{display:block;aspect-ratio:1;border-radius:2px}
 @media print{ #nav,#tkList,.noprint{display:none!important} body{background:#fff} }
+/* ===== franja de ambiente: dev = roja, prod = café (ver IS_DEV) ===== */
+body.env-dev #nav{background:#D23C3C}
 
 /* ===== FLUJO RÁPIDO: cantidad -> sabores -> adicionales por partida ===== */
 #fastBack{display:none;position:fixed;inset:0;background:rgba(43,36,33,.45);z-index:80;align-items:center;justify-content:center;padding:18px}
@@ -580,7 +582,10 @@ table.cat input.num{width:84px}
 
 <script>
 'use strict';
-const APP_VERSION = 'v14-beta · Features 2-6/6 + fix clientes (piloto completo)';
+// Ambiente: /dev/ (o ?env=dev) → barra roja; ruta raíz de producción → café.
+const IS_DEV = /\/dev\//.test(location.pathname) || /(^|[?&])env=dev(&|$)/.test(location.search);
+if(IS_DEV) document.body.classList.add('env-dev');
+const APP_VERSION = 'v14-beta · piloto completo (2-6/6 + fix)';
 /* ================= UTILIDADES ================= */
 const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
@@ -1387,7 +1392,8 @@ async function renderTickets(){
     else if(o.status==='completado'){ wm.className='pend'; wm.textContent='P'; window.__tkWM='P'; }
     else { wm.className=''; wm.textContent=''; window.__tkWM=null; }
     wa.disabled = false; wa.style.opacity=1;
-  } else { S.curLines=null; $('#ticketPaper').textContent='Selecciona un pedido de la lista.'; wm.className=''; wm.textContent=''; window.__tkWM=null; $('#tbg').style.display='none'; wa.disabled=true; wa.style.opacity=.45; }
+    wa.textContent = (o.customer&&o.customer.phone) ? 'Enviar por WhatsApp · '+o.customer.phone : 'Enviar por WhatsApp';
+  } else { S.curLines=null; $('#ticketPaper').textContent='Selecciona un pedido de la lista.'; wm.className=''; wm.textContent=''; window.__tkWM=null; $('#tbg').style.display='none'; wa.disabled=true; wa.style.opacity=.45; wa.textContent='Enviar por WhatsApp'; }
 }
 $('#btnCorte').onclick = ()=>{ S.corte = !S.corte; renderTickets(); };
 $('#btnToday').onclick = ()=>{ S.tkDate = todayKey(); S.tkSel=null; S.corte=false; renderTickets(); };
