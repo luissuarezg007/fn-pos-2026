@@ -361,12 +361,6 @@ table.cat input.num{width:84px}
         </div>
         <div id="sbStatus" class="small" style="margin-top:8px">Sin configurar — la app funciona local y guarda pendientes.</div>
       </div>
-      <div class="card" style="grid-column:1/-1">
-        <b>Catálogo de clientes <span id="cliCount" class="muted small"></span></b>
-        <table class="cat"><thead><tr><th>Nombre</th><th>Teléfono (WhatsApp)</th><th>Casa</th><th></th></tr></thead><tbody id="cliRows"></tbody></table>
-        <div class="row" style="margin-top:8px"><button class="btn ghost" id="btnAddCli">+ Cliente</button><button class="btn primary" id="btnSaveCli">Guardar clientes</button></div>
-        <p class="small muted">Los clientes también se registran solos al guardar pedidos con datos nuevos. El teléfono de aquí es el que usa el envío por WhatsApp.</p>
-      </div>
       <div class="card">
         <b>Respaldo local</b>
         <p class="small muted">Exporta todos los pedidos y el catálogo a un archivo JSON (respaldo manual adicional a la nube).</p>
@@ -374,6 +368,33 @@ table.cat input.num{width:84px}
           <button class="btn ghost" id="btnExport">Exportar JSON</button>
           <label class="btn ghost" style="display:flex;align-items:center;margin:0">Importar JSON<input type="file" id="impFile" accept=".json" style="display:none"></label>
         </div>
+      </div>
+      <div class="card">
+        <b>Horario y notas rápidas</b>
+        <p class="small muted">Días y horas de apertura — ajustan el mapa de calor de Tendencias. Y notas rápidas que aparecen como chips al tomar el pedido.</p>
+        <label>Días de apertura</label>
+        <div class="seg" id="openDays" style="flex-wrap:wrap;max-width:none">
+          <button class="chip" type="button" data-d="1">Lun</button>
+          <button class="chip" type="button" data-d="2">Mar</button>
+          <button class="chip" type="button" data-d="3">Mié</button>
+          <button class="chip" type="button" data-d="4">Jue</button>
+          <button class="chip" type="button" data-d="5">Vie</button>
+          <button class="chip" type="button" data-d="6">Sáb</button>
+          <button class="chip" type="button" data-d="0">Dom</button>
+        </div>
+        <div class="row" style="gap:14px;margin-top:8px">
+          <div><label>Abre (hora)</label><input id="openFrom" class="num" inputmode="numeric" type="number" min="0" max="23" style="width:100px"></div>
+          <div><label>Cierra (hora)</label><input id="openTo" class="num" inputmode="numeric" type="number" min="0" max="23" style="width:100px"></div>
+        </div>
+        <label style="margin-top:12px">Notas rápidas (chips en el pedido)</label>
+        <div id="noteRows"></div>
+        <div class="row" style="margin:8px 0 4px"><button class="btn ghost" id="btnAddNote">+ Nota</button><button class="btn primary" id="btnSaveHours">Guardar horario y notas</button></div>
+      </div>
+      <div class="card" style="grid-column:1/-1">
+        <b>Catálogo de clientes <span id="cliCount" class="muted small"></span></b>
+        <table class="cat"><thead><tr><th>Nombre</th><th>Teléfono (WhatsApp)</th><th>Casa</th><th></th></tr></thead><tbody id="cliRows"></tbody></table>
+        <div class="row" style="margin-top:8px"><button class="btn ghost" id="btnAddCli">+ Cliente</button><button class="btn primary" id="btnSaveCli">Guardar clientes</button></div>
+        <p class="small muted">Los clientes también se registran solos al guardar pedidos con datos nuevos. El teléfono de aquí es el que usa el envío por WhatsApp.</p>
       </div>
       <div class="card" style="grid-column:1/-1">
         <b>Diagnóstico (bitácora) <span id="logInfo" class="muted small"></span></b>
@@ -1373,9 +1394,32 @@ function renderConfig(){
     </tr>`).join('');
   $$('#prodRows .pDel').forEach(b=>b.onclick=e=>{ e.target.closest('tr').remove(); });
   renderAdic();
-  renderLists(); renderCG(); renderClientsCfg(); renderLogView();
+  renderLists(); renderCG(); renderClientsCfg(); renderLogView(); renderConfigHours();
   if(sync.configured()){ $('#cfgSbUrl').value=sync.cfg.url; $('#cfgSbKey').value=sync.cfg.key; }
 }
+function renderConfigHours(){
+  if(!$('#openDays')) return;
+  const od=CAT.settings.openDays||[1,2,3,4,5,6,0];
+  $$('#openDays .chip').forEach(b=>b.classList.toggle('sel', od.includes(Number(b.dataset.d))));
+  $('#openFrom').value=CAT.settings.openFrom==null?12:CAT.settings.openFrom;
+  $('#openTo').value=CAT.settings.openTo==null?23:CAT.settings.openTo;
+  renderNoteRows();
+}
+function renderNoteRows(){
+  if(!$('#noteRows'))return;
+  $('#noteRows').innerHTML=(CAT.settings.notePresets||[]).map(t=>`<div class="row noteRow" style="gap:6px;margin-top:6px"><input class="noteName" value="${t.replace(/"/g,'&quot;')}" style="flex:1"><button class="rm noteDel" type="button" style="background:none;border:none;color:var(--bad);font-size:18px">×</button></div>`).join('');
+  $$('#noteRows .noteDel').forEach(b=>b.onclick=()=>b.closest('.noteRow').remove());
+}
+$$('#openDays .chip').forEach(b=>b.onclick=()=>b.classList.toggle('sel'));
+$('#btnAddNote').onclick=()=>{ const d=document.createElement('div'); d.className='row noteRow'; d.style.cssText='gap:6px;margin-top:6px'; d.innerHTML='<input class="noteName" placeholder="Ej. Sin cebolla" style="flex:1"><button class="rm noteDel" type="button" style="background:none;border:none;color:var(--bad);font-size:18px">×</button>'; $('#noteRows').appendChild(d); d.querySelector('.noteDel').onclick=()=>d.remove(); };
+$('#btnSaveHours').onclick=async()=>{
+  CAT.settings.openDays=$$('#openDays .chip.sel').map(b=>Number(b.dataset.d));
+  CAT.settings.openFrom=Math.max(0,Math.min(23,parseInt($('#openFrom').value)||0));
+  CAT.settings.openTo=Math.max(0,Math.min(23,parseInt($('#openTo').value)||23));
+  CAT.settings.notePresets=$$('#noteRows .noteName').map(i=>i.value.trim()).filter(Boolean);
+  CAT.updated_at=isoAfter(CAT.updated_at); await idb.put('meta',CAT,'catalog'); await sync.enqueue('catalog',CAT);
+  toast('Horario y notas guardados'); if(S.view==='tendencias') renderTendencias();
+};
 function renderLists(){
   $('#listRows').innerHTML = (CAT.optionLists||[]).map(l=>`<tr data-id="${l.id}">
     <td><input class="lName" value="${l.name.replace(/"/g,'&quot;')}"></td>
@@ -1762,6 +1806,11 @@ $$('.navbtn[data-view]').forEach(b=>b.onclick=()=>switchView(b.dataset.view));
   if(!CAT.addonList){
     CAT.addonList = [{n:'Queso',p:15},{n:'Aderezo extra',p:12},{n:'Tocino',p:20},{n:'Doble salsa',p:10}];
     CAT.products.forEach(p=>{ if(['Alitas','Boneless','Papas'].includes(p.cat)) p.allowAddons=true; });
+    CAT.updated_at = isoAfter(CAT.updated_at); await idb.put('meta', CAT, 'catalog');
+  }
+  if(!CAT.settings.notePresets || CAT.settings.openFrom==null){
+    CAT.settings.notePresets = CAT.settings.notePresets || ['Bien doradito','Sin apio','Salsa aparte','Para llevar','Extra picante','Sin cebolla'];
+    if(CAT.settings.openFrom==null){ CAT.settings.openDays=[1,2,3,4,5,6,0]; CAT.settings.openFrom=12; CAT.settings.openTo=23; }
     CAT.updated_at = isoAfter(CAT.updated_at); await idb.put('meta', CAT, 'catalog');
   }
   renderCatalogUI(); renderCart(); updateKCount(); updateNet(); await refreshClients();
