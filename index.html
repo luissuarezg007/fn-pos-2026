@@ -974,6 +974,39 @@ setInterval(()=>{
 
 /* ================= VISTA: TICKETS ================= */
 function esc(t){ return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+const TK_W = 32; // caracteres del rollo de 58 mm
+function rowLR(left,right,width){ width=width||TK_W; const g=width-String(left).length-String(right).length; return g>=1 ? left+' '.repeat(g)+right : left+' '+right; }
+function itemDetailLines(i){
+  const out=[];
+  if(i.sel && i.sel.length){
+    i.sel.forEach(g=>{
+      const opts=g.opts.map(o=>o.n+(o.p?' +$'+o.p:'')).join(', ');
+      if(/adicional/i.test(g.g)) out.push('+ '+opts);
+      else out.push(g.g+(g.gp?' +$'+g.gp:'')+': '+opts);
+    });
+  } else if(i.flavors && i.flavors.length){
+    out.push(i.flavors.join(' / '));
+  }
+  if(i.notes) out.push('* '+i.notes);
+  return out;
+}
+// Reparte cada renglón que pase del ancho en varias líneas, conservando su sangría e indicadores (bold/cancelado/rojo).
+function wrapLines(L,width){
+  width=width||TK_W;
+  const out=[];
+  L.forEach(l=>{
+    const t=l.t==null?'':String(l.t);
+    if(t.length<=width){ out.push(l); return; }
+    const m=/^(\s*)([\s\S]*)$/.exec(t); const ind=m[1]||'';
+    const avail=Math.max(10, width-ind.length);
+    const words=m[2].split(/\s+/).filter(Boolean);
+    let cur='';
+    const flush=s=>out.push(Object.assign({},l,{t:ind+s}));
+    words.forEach(w=>{ const test=cur?cur+' '+w:w; if(test.length>avail && cur){ flush(cur); cur=w; } else cur=test; });
+    if(cur) flush(cur);
+  });
+  return out;
+}
 function ticketLines(o){
   const L=[]; const add=(t,f={})=>L.push(Object.assign({t},f));
   const biz=CAT.settings.biz||'Fancy Nancy';
@@ -984,8 +1017,8 @@ function ticketLines(o){
   if(o.customer.name) add('Cliente: '+o.customer.name);
   add('--------------------------------');
   o.items.forEach(i=>{
-    add(i.qty+'x '+i.name+(selTxt(i)?' ('+selTxt(i)+')':'')+'  '+fmt(lineTotal(i)),{c:i.cancelled});
-    if(i.notes) add('   * '+i.notes,{c:i.cancelled});
+    add(rowLR(i.qty+'x '+i.name, fmt(lineTotal(i))),{c:i.cancelled});
+    itemDetailLines(i).forEach(d=> add('  '+d,{c:i.cancelled}));
   });
   add('--------------------------------');
   if(o.status==='cancelado'){
@@ -1001,7 +1034,7 @@ function ticketLines(o){
   if(o.note) add('Nota: '+o.note);
   add('');
   add('¡Gracias por tu pedido! 🍗');
-  return L;
+  return wrapLines(L);
 }
 function corteLines(all){
   const L=[]; const add=(t,f={})=>L.push(Object.assign({t},f));
@@ -1038,7 +1071,7 @@ function corteLines(all){
   const top = Object.entries(byP).sort((a,b)=>b[1]-a[1]).slice(0,8);
   top.forEach(([n,u])=>add('  '+u+'× '+n));
   if(!top.length) add('  (sin ventas)');
-  return L;
+  return wrapLines(L);
 }
 const linesWA  = ls => ls.map(l=> l.c?'~'+l.t+'~':(l.b?'*'+l.t+'*':l.t)).join('\n');
 const linesTxt = ls => ls.map(l=> l.c? l.t+'  (CANCELADO)': l.t).join('\n');
@@ -1048,6 +1081,7 @@ async function renderTickets(){
   if($('#tkDate')) $('#tkDate').value = S.tkDate;
   const all = await idb.all('orders');
   const list = all.filter(o=>todayKey(o.created_at)===S.tkDate).sort((a,b)=>a.created_at<b.created_at?1:-1);
+  S.tkOrders = list;
   if(S.tkSel && !list.find(o=>o.id===S.tkSel)) S.tkSel = null;
   if(!S.corte && !S.tkSel && list.length) S.tkSel = list[0].id;
   $('#tkList').innerHTML = list.map(o=>`
@@ -1142,8 +1176,29 @@ async function shareTicketImage(preferWhatsApp){
     toast(preferWhatsApp ? 'Tu navegador no comparte imagen directo; se descargó para adjuntarla' : 'Imagen descargada');
   });
 }
+/* ===== WhatsApp click-to-chat (wa.me) — envío directo, sin backend =====
+   Abre WhatsApp (app o web) ya con el número del cliente y el texto del
+   ticket escrito; el mesero solo toca "Enviar". Esto es 100% real hoy.
+   Envío 100% automático/proactivo (sin tocar nada) requeriría WhatsApp
+   Business Platform (Cloud API) + plantillas aprobadas + backend. */
+function waDigits(raw){
+  let d = String(raw||'').replace(/[^0-9]/g,'');
+  if(!d) return '';
+  if(d.length===10) d = '52'+d; // MX: agrega lada país si viene a 10 dígitos
+  return d;
+}
+function sendTicketWhatsApp(){
+  if(!S.curLines){ toast('Selecciona un ticket'); return; }
+  const o = (S.tkOrders||[]).find(x=>x.id===S.tkSel);
+  const phone = waDigits(o && o.customer && o.customer.phone);
+  const txt = linesTxt(S.curLines);
+  const url = 'https://wa.me/' + (phone ? phone+'?text=' : '?text=') + encodeURIComponent(txt);
+  if(!phone) toast('Sin teléfono guardado — elige el chat manualmente en WhatsApp');
+  window.open(url, '_blank');
+  log('INFO','whatsapp_send','folio='+(o?o.folio:'?')+' tel='+(phone||'—'));
+}
 $('#btnImg').onclick = ()=>shareTicketImage(false);
-$('#btnWA').onclick = ()=>shareTicketImage(true);
+$('#btnWA').onclick = sendTicketWhatsApp;
 $('#btnPrint').onclick = ()=>window.print();
 
 /* ================= VISTA: CONFIG ================= */
