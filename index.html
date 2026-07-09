@@ -94,7 +94,7 @@ label{display:block;font-size:12px;font-weight:700;color:var(--muted);margin:10p
 .kx{margin-left:auto;background:none;color:var(--kbad);font-weight:800;font-size:17px;min-height:32px;padding:0 8px}
 .kitem .note{display:block;font-size:12px;color:var(--kaccent);font-style:italic}
 .kfoot{padding:10px 12px}
-.kfoot .btn{width:100%;background:var(--kaccent);color:#15181D}
+.kfoot .btn{background:var(--kaccent);color:#15181D}
 .kmeta{font-size:12px;color:var(--kmuted);padding:0 12px 8px}
 /* ---------- TICKETS ---------- */
 #tkList{width:280px;min-width:240px;display:flex;flex-direction:column;gap:8px;max-height:78vh;overflow:auto}
@@ -1175,7 +1175,7 @@ async function renderComandas(){
       ${o.note?`<div class="kmeta">📝 ${o.note}</div>`:''}
       ${o.scheduled_at?`<div class="kmeta">📅 Programado: ${schedTxt(o.scheduled_at)}</div>`:''}
       ${o.customer.name||o.customer.phone||o.customer.address?`<div class="kmeta">Cliente: ${o.customer.name||'—'} ${o.customer.address?'· Casa '+o.customer.address:''} ${o.customer.phone?'· '+o.customer.phone:''}</div>`:''}
-      ${o.status==='abierto'?`<div class="kfoot" style="display:flex;gap:6px"><button class="btn kedit" style="background:#3a6ea5;flex:1">✎ Editar</button><button class="btn kcancel" style="background:var(--kbad);flex:1">✗ Cancelar</button><button class="btn kdone" style="flex:1.6">✓ Completar</button></div>`:''}
+      ${o.status==='abierto'?`<div class="kfoot" style="display:flex;flex-direction:column;gap:6px"><div style="display:flex;gap:6px"><button class="btn kedit" style="background:#3a6ea5;flex:1">✎ Editar</button><button class="btn kcancel" style="background:var(--kbad);flex:1">✗ Cancelar</button></div><button class="btn kdone" style="width:100%">✓ Completar</button></div>`:''}
     </div>`;
   }).join('') || '<p style="color:var(--kmuted)">No hay comandas '+(S.kFilter==='open'?'abiertas':'completadas hoy')+'.</p>';
 
@@ -1418,7 +1418,10 @@ function buildTicketImage(cb){
     const lg = ticketLogoImg();
     if(lg && lg.complete && lg.naturalWidth){
       const w = fw*0.74, h = w*lg.naturalHeight/lg.naturalWidth;
-      ctx.globalAlpha=0.15; ctx.drawImage(lg,(fw-w)/2, H*0.46-h/2, w, h); ctx.globalAlpha=1;
+      const step = h*1.10; // altura de la imagen + 10% de espacio
+      ctx.globalAlpha=0.15;
+      for(let y=0; y<H; y+=step){ ctx.drawImage(lg,(fw-w)/2, y, w, h); }
+      ctx.globalAlpha=1;
     }
     if(window.__tkWM){ ctx.globalAlpha=0.13; ctx.fillStyle=window.__tkWM==='✓'?'#2E9E5B':'#D23C3C';
       ctx.font='900 130px -apple-system, Helvetica, sans-serif'; ctx.textAlign='center';
