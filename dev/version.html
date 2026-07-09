@@ -98,6 +98,39 @@
 <li>Pendientes en la baraja v14-beta: modales Cobro/Confirm, reorden de Config, timer de cocina (Alexa/iPad).</li>
 </ul>
 
+<hr>
+
+<h2>v14-beta — Feature 4/6: Modales Cobro/Confirm 🟢 EN PRUEBA</h2>
+<ul>
+<li>Se eliminan todos los diálogos nativos del navegador (<code>confirm()</code>), reemplazados por modales propios estilizados.</li>
+<li><b>Cobro:</b> al marcar un pedido como cobrado desde Tickets, abre un modal con total grande, Efectivo/Transferencia, "paga con" + cambio en vivo, y montos rápidos ($200/$500/$1000/exacto).</li>
+<li><b>Confirmación:</b> cancelar platillo, cancelar pedido y borrar bitácora ahora usan un modal de confirmación estilizado.</li>
+<li>Rama: <code>feature/cobro-confirm-modals</code>.</li>
+<li>Para probar: en Comandas cancela un platillo/pedido; en Tickets marca un pedido completado como cobrado (debe abrir el modal de cobro).</li>
+</ul>
+
+<hr>
+
+<h2>v14-beta — Feature 5/6: Reordenamiento de Config + Horario/notas 🟢 EN PRUEBA</h2>
+<ul>
+<li>Config reordenado: arriba las tarjetas rápidas (Negocio · Sincronización · Respaldo local · Horario y notas rápidas); abajo las anchas (Catálogo de clientes · Diagnóstico · Catálogo de productos).</li>
+<li><b>Nueva tarjeta "Horario y notas rápidas":</b> define días/horas de apertura y administra las notas rápidas (chips que aparecen al tomar el pedido en el flujo rápido).</li>
+<li>Seed inicial: 6 notas de ejemplo + horario 12:00–23:00.</li>
+<li>Rama: <code>feature/config-reorder</code>.</li>
+</ul>
+
+<hr>
+
+<h2>v14-beta — Feature 6/6: Timer de cocina 🟢 EN PRUEBA</h2>
+<ul>
+<li>En "Nuevo pedido", bajo los botones de Guardar: presets 1–7 min. Un toque inicia la cuenta regresiva; permite varios timers a la vez.</li>
+<li>Al llegar a 0: alarma (beep en bucle), chip parpadea rojo, aviso (toast) y notificación web si hay permiso. Botón "Detener" corta la alarma.</li>
+<li>Los timers sobreviven a recargar la página (se guardan como hora de fin absoluta).</li>
+<li>Selector iPad/Alexa en el encabezado del timer.</li>
+<li><b>Importante:</b> la parte de Alexa es una <b>demostración</b> (conexión simulada). El anuncio real en un Echo requiere cuenta de desarrollador Amazon + una Alexa Skill con backend — eso queda <b>fuera de alcance</b> de este piloto y sería trabajo aparte de infraestructura.</li>
+<li>Rama: <code>feature/kitchen-timer</code> (depende de los modales del Feature 4).</li>
+</ul>
+
 <h2>v9 — Cerveza, historial e identidad</h2>
 <ul>
 <li>Cerveza con sabor independiente (sin costo) y cerillito como extra con costo, en grupos separados.</li>
