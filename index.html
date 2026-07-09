@@ -125,73 +125,41 @@ table.cat input.num{width:84px}
 .heat .hc{display:block;aspect-ratio:1;border-radius:2px}
 @media print{ #nav,#tkList,.noprint{display:none!important} body{background:#fff} }
 
-/* ===== FLUJO RÁPIDO: cantidad -> sabores -> adicionales por partida ===== */
-#fastBack{display:none;position:fixed;inset:0;background:rgba(43,36,33,.45);z-index:80;align-items:center;justify-content:center;padding:18px}
-#fastBack.open{display:flex}
-#fastModal{background:#fff;border-radius:18px;width:min(660px,96vw);max-height:92vh;overflow:auto;padding:22px}
-.f-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
-.f-crumbs{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:700;color:var(--muted);flex-wrap:wrap}
-.f-cr{display:inline-flex;align-items:center;gap:6px}.f-cr.on{color:var(--ink)}
-.f-cr .n{width:24px;height:24px;border-radius:50%;background:var(--bg);border:1px solid var(--line);display:grid;place-items:center;font-size:12px;font-weight:800}
-.f-cr.on .n{background:var(--accent);border-color:var(--accent);color:#fff}
-.f-cr.done .n{background:var(--ok);border-color:var(--ok);color:#fff}
-.f-x{width:40px;height:40px;border-radius:10px;border:1px solid var(--line);background:#fff;font-size:20px;font-weight:800;color:var(--muted)}
-.f-title{font-size:22px;font-weight:800;margin:2px 0 3px}
-.f-sub{font-size:14px;color:var(--muted);margin:0 0 16px}
-.f-qwrap{display:flex;gap:24px;flex-wrap:wrap;align-items:flex-start}
-.f-qdisp{flex:1;min-width:200px}
-.f-qbig{font-size:96px;font-weight:800;line-height:1;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
-.f-qbig .u{font-size:20px;font-weight:700;color:var(--muted);margin-left:8px}
-.f-qhint{font-size:14px;color:var(--muted);margin-top:8px}
-.f-qchips{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}
-.f-qchip{border:1.5px solid var(--line);background:#fff;border-radius:12px;padding:12px 18px;font-size:18px;font-weight:800;min-height:54px;min-width:60px}
-.f-keypad{display:grid;grid-template-columns:repeat(3,84px);gap:10px}
-.f-key{height:74px;border:1.5px solid var(--line);background:#fff;border-radius:14px;font-size:28px;font-weight:800;color:var(--ink)}
-.f-key.ok{background:var(--accent);border-color:var(--accent);color:#fff}
-.f-key.del{font-size:22px;color:var(--muted)}
-.f-counter{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:14px 17px;margin-bottom:14px}
-.f-counter .t{font-size:16px;font-weight:800}
-.f-counter .c{font-size:16px;font-weight:800}.f-counter .c.ok{color:var(--ok)}.f-counter .c.left{color:var(--accent)}
-.f-fgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:11px}
-.f-fbtn{position:relative;border:1.5px solid var(--line);background:#fff;border-radius:14px;padding:17px 16px;min-height:68px;text-align:left;font-size:18px;font-weight:700;display:flex;align-items:center;gap:10px;color:var(--ink)}
-.f-fbtn.has{border-color:var(--accent);background:var(--accent-soft)}
-.f-fbtn.pick{outline:3px solid var(--accent);outline-offset:2px}
-.f-rgt{margin-left:auto;display:flex;align-items:center;gap:8px;flex:none}
-.f-badge{min-width:34px;height:34px;border-radius:9px;background:var(--accent);color:#fff;font-size:17px;font-weight:800;display:grid;place-items:center;padding:0 8px}
-.f-dec{width:34px;height:34px;border-radius:9px;border:1px solid var(--accent);background:#fff;color:var(--accent);font-size:20px;font-weight:800}
-.f-tools{display:flex;gap:9px;flex-wrap:wrap;margin:14px 0}
-.f-tool{border:1.5px dashed var(--line);background:#fff;border-radius:12px;padding:13px 18px;font-size:15px;font-weight:800;color:var(--ink);min-height:50px}
-.f-tool.on{background:var(--accent);border-style:solid;border-color:var(--accent);color:#fff}
-.f-tool.fill{color:var(--accent);border-color:var(--accent)}
-.f-hint{font-size:15px;font-weight:700;color:var(--accent);background:var(--accent-soft);border-radius:11px;padding:12px 15px;margin:6px 0 12px;display:none}
-.f-hint.show{display:block}
-.f-phrase{font-size:17px;line-height:1.5;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-top:14px}
-.f-phrase .lead{display:block;font-size:11.5px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
-.f-phrase .half{color:var(--accent);font-weight:800}
-.f-notes{width:100%;margin-top:10px;border:1px solid var(--line);border-radius:10px;padding:11px 13px;font-size:15px;font-family:inherit;resize:none}
-.f-check{display:flex;align-items:center;gap:10px;font-size:16px;font-weight:700;margin-top:18px;cursor:pointer}
-.f-check input{width:22px;height:22px;accent-color:var(--accent)}
-.f-adchips,.f-notechips{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
-.f-chip{border:1.5px solid var(--line);background:#fff;border-radius:999px;padding:9px 15px;font-size:14px;font-weight:700;color:var(--ink);min-height:42px}
-.f-chip.on{background:var(--accent-soft);border-color:var(--accent);color:var(--ink)}
-.f-seclbl{font-size:11.5px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin:18px 0 0}
-.f-stack{display:flex;flex-direction:column;gap:10px;margin-top:8px}
-.f-line{border:1.5px solid var(--line);border-radius:12px;padding:12px 13px;background:#fff}
-.f-line.split{border-color:var(--accent)}
-.f-line-hd{display:flex;align-items:center;justify-content:space-between;gap:10px}
-.f-line-nm{font-size:16px;font-weight:800}
-.f-line.split .f-line-nm{color:var(--accent)}
-.f-stepper{display:flex;align-items:center;gap:10px;flex:none}
-.f-stepper button{width:36px;height:36px;border-radius:9px;border:1px solid var(--line);background:var(--bg);font-size:20px;font-weight:800;color:var(--ink);line-height:1}
-.f-stepper b{min-width:22px;text-align:center;font-size:17px;font-weight:800}
-.f-line-ad{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}
-.f-chip.sm{padding:7px 12px;font-size:13px;min-height:38px}
-.f-cta{display:flex;gap:10px;margin-top:16px}
-.f-cta .fb{border:none;border-radius:12px;padding:17px;font-size:18px;font-weight:800;font-family:inherit;flex:1}
-.f-cta .fb.primary{background:var(--accent);color:#fff}
-.f-cta .fb.primary:disabled{background:#E7D7CC}
-.f-cta .fb.ghost{flex:none;background:#fff;border:1px solid var(--line);color:var(--ink);padding:17px 20px}
 .f-revtag{display:inline-block;background:#D23C3C;color:#fff;font-size:10.5px;font-weight:800;padding:2px 8px;border-radius:6px;text-transform:uppercase;margin-left:8px;vertical-align:middle}
+/* ===== Modal reutilizable: cobro + confirmación (reemplaza confirm() nativo) ===== */
+#fnScrim{display:none;position:fixed;inset:0;background:rgba(43,36,33,.45);z-index:60;align-items:center;justify-content:center;padding:18px}
+#fnScrim.open{display:flex}
+.fnModal{background:#fff;border-radius:16px;padding:20px;width:min(420px,92vw);max-height:88vh;overflow:auto;box-shadow:0 24px 60px rgba(43,36,33,.30)}
+.fnMHead{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.fnMHead h3{margin:0;font-size:19px}
+.fnMHead .sub{color:var(--muted);font-size:13px;margin:3px 0 0}
+.fnFolio{flex:none;font-size:12px;font-weight:800;color:var(--muted);background:var(--bg);border:1px solid var(--line);border-radius:999px;padding:4px 10px;font-variant-numeric:tabular-nums}
+.fnTot{display:flex;align-items:baseline;justify-content:space-between;gap:10px;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin:16px 0}
+.fnTot .lbl{font-size:12px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.fnTot .amt{font-size:30px;font-weight:800;font-variant-numeric:tabular-nums}
+.fnLbl{display:block;font-size:12px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin:0 0 6px}
+.fnSeg{display:flex;gap:6px}
+.fnSeg .fnChip{flex:1;min-height:46px;display:flex;align-items:center;justify-content:center;gap:6px;border-radius:12px;border:1px solid var(--line);background:#fff;color:var(--ink);font-weight:700;font-size:14px}
+.fnSeg .fnChip.sel{background:var(--accent);color:#fff;border-color:var(--accent)}
+.fnCash{margin-top:16px}
+.fnCash input{width:100%}
+.fnQuick{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.fnQuick button{min-height:40px;padding:8px 12px;border-radius:999px;background:var(--bg);border:1px solid var(--line);font-weight:700;font-size:13px;color:var(--ink)}
+.fnChange{display:flex;justify-content:space-between;align-items:center;margin-top:12px;padding-top:12px;border-top:1px dashed var(--line)}
+.fnChange .k{font-weight:700;color:var(--muted);font-size:13px}
+.fnChange .v{font-size:20px;font-weight:800;color:var(--ok);font-variant-numeric:tabular-nums}
+.fnChange .v.short{color:var(--bad)}
+.fnFoot{display:flex;gap:10px;margin-top:20px}
+.fnBtn{flex:1;min-height:50px;padding:10px 16px;font-weight:800;font-size:15px;border-radius:12px;border:none;color:#fff}
+.fnBtn.ghost{background:#fff;border:1px solid var(--line);color:var(--ink)}
+.fnBtn.ok{background:var(--ok)}
+.fnBtn.bad{background:var(--bad)}
+.fnBtn.primary{background:var(--accent)}
+.fnWarn{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:26px;margin:0 auto 12px;background:#FBE3E3;color:var(--bad);font-weight:800}
+.fnCBody{text-align:center;padding:6px 4px 0}
+.fnCBody h3{margin:0 0 8px;font-size:19px}
+.fnCBody p{margin:0;color:var(--muted);font-size:14px;line-height:1.5}
+.fnCBody .em{color:var(--ink);font-weight:700}
 </style>
 </head>
 <body>
@@ -485,6 +453,9 @@ table.cat input.num{width:84px}
   </div>
 </div>
 
+<!-- ============ Modal Cobro/Confirm (overlay) — v14-beta, feature 4/6 ============ -->
+<div id="fnScrim"></div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -499,6 +470,78 @@ const uuid = () => (crypto.randomUUID ? crypto.randomUUID() :
   'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {const r=Math.random()*16|0;return (c==='x'?r:(r&3|8)).toString(16);}));
 const todayKey = d => { const x = d?new Date(d):new Date(); return x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0')+'-'+String(x.getDate()).padStart(2,'0'); };
 function toast(msg){ const t=$('#toast'); t.textContent=msg; t.style.display='block'; clearTimeout(t._h); t._h=setTimeout(()=>t.style.display='none',2400); }
+
+/* ===== Modal reutilizable: cobro + confirmación (reemplaza confirm() nativo) ===== */
+const fnScrim = $('#fnScrim');
+function fnClose(){ fnScrim.classList.remove('open'); fnScrim.innerHTML=''; fnScrim.onclick=null; }
+
+// Confirmación destructiva. opts:{title, msg(html), cta, onConfirm}
+function showConfirm(opts){
+  fnScrim.innerHTML = `
+    <div class="fnModal" style="width:min(380px,92vw)" onclick="event.stopPropagation()">
+      <div class="fnWarn">✗</div>
+      <div class="fnCBody"><h3>${esc(opts.title)}</h3><p>${opts.msg||''}</p></div>
+      <div class="fnFoot">
+        <button class="fnBtn ghost" data-a="back">No, regresar</button>
+        <button class="fnBtn bad" data-a="ok">${esc(opts.cta||'Sí, cancelar')}</button>
+      </div>
+    </div>`;
+  fnScrim.classList.add('open');
+  fnScrim.onclick = e=>{ if(e.target===fnScrim) fnClose(); };
+  fnScrim.querySelector('[data-a=back]').onclick = fnClose;
+  fnScrim.querySelector('[data-a=ok]').onclick = ()=>{ fnClose(); opts.onConfirm&&opts.onConfirm(); };
+}
+
+// Cobro. o = pedido; onPaid(method, pays) al confirmar cobro.
+function showCobro(o, onPaid){
+  const total = o.total;
+  let method = (o.payment&&o.payment.method) || 'Efectivo';
+  let pays = (o.payment&&o.payment.method==='Efectivo'&&o.payment.pays) ? o.payment.pays : null;
+  function draw(){
+    const cash = method==='Efectivo';
+    const change = pays!=null ? pays-total : null;
+    const changeTxt = change==null ? '—' : (change<0 ? 'Faltan '+fmt(-change) : fmt(change));
+    fnScrim.innerHTML = `
+      <div class="fnModal" onclick="event.stopPropagation()">
+        <div class="fnMHead">
+          <div><h3>Cerrar cuenta</h3><p class="sub">${esc(o.customer&&o.customer.name||'Cliente genérico')}${o.customer&&o.customer.address?' · '+esc(o.customer.address):''} · ${esc(o.type||'')}</p></div>
+          <span class="fnFolio">#${esc(o.folio)}</span>
+        </div>
+        <div class="fnTot"><span class="lbl">Total a cobrar</span><span class="amt">${fmt(total)}</span></div>
+        <span class="fnLbl">Forma de pago</span>
+        <div class="fnSeg">
+          <button class="fnChip ${cash?'sel':''}" data-pay="Efectivo">💵 Efectivo</button>
+          <button class="fnChip ${!cash?'sel':''}" data-pay="Transferencia">📲 Transferencia</button>
+        </div>
+        ${cash ? `
+        <div class="fnCash">
+          <span class="fnLbl">Paga con</span>
+          <input id="fnPays" inputmode="decimal" placeholder="0" value="${pays!=null?pays:''}">
+          <div class="fnQuick">
+            <button data-q="${total}">Exacto</button>
+            <button data-q="200">$200</button>
+            <button data-q="500">$500</button>
+            <button data-q="1000">$1000</button>
+          </div>
+          <div class="fnChange"><span class="k">Cambio</span><span class="v ${change!=null&&change<0?'short':''}" id="fnChangeV">${changeTxt}</span></div>
+        </div>` : `<p class="sub" style="margin-top:14px;color:var(--muted);font-size:13px">Se registra como transferencia recibida. El corte del día la separa del efectivo.</p>`}
+        <div class="fnFoot">
+          <button class="fnBtn ghost" data-a="pend">Sigue pendiente</button>
+          <button class="fnBtn ok" data-a="cobrar">Marcar cobrado ✓</button>
+        </div>
+      </div>`;
+    fnScrim.querySelectorAll('[data-pay]').forEach(b=>b.onclick=()=>{ method=b.dataset.pay; if(method!=='Efectivo') pays=null; draw(); });
+    fnScrim.querySelectorAll('[data-q]').forEach(b=>b.onclick=()=>{ pays=Number(b.dataset.q); draw(); });
+    const inp = fnScrim.querySelector('#fnPays');
+    if(inp) inp.oninput = ()=>{ const v=inp.value.replace(/[^0-9.]/g,''); pays = v===''?null:Number(v);
+      const cv=fnScrim.querySelector('#fnChangeV'); if(cv){ const ch=pays!=null?pays-total:null; cv.textContent = ch==null?'—':(ch<0?'Faltan '+fmt(-ch):fmt(ch)); cv.classList.toggle('short', ch!=null&&ch<0); } };
+    fnScrim.querySelector('[data-a=pend]').onclick = fnClose;
+    fnScrim.querySelector('[data-a=cobrar]').onclick = ()=>{ fnClose(); onPaid(method, method==='Efectivo'?(pays||0):0); };
+  }
+  draw();
+  fnScrim.classList.add('open');
+  fnScrim.onclick = e=>{ if(e.target===fnScrim) fnClose(); };
+}
 
 /* ================= INDEXEDDB ================= */
 let db;
@@ -1020,16 +1063,18 @@ async function renderComandas(){
   $$('#kGrid .kx').forEach(b => b.onclick = async e=>{
     const card = e.target.closest('.kcard'); const o = await idb.get('orders', card.dataset.oid);
     const it = o.items[Number(e.target.dataset.ix)];
-    if(!confirm('¿Cancelar "'+it.qty+'× '+it.name+'" del pedido #'+o.folio+'? Se descuenta del total.')) return;
-    it.cancelled = true; it.done = false;
-    recomputeTotals(o);
-    await saveOrder(o); renderComandas(); renderTickets(); toast('Platillo cancelado'); log('INFO','cancelar_platillo','folio='+o.folio+' item='+it.name);
+    showConfirm({ title:'Cancelar platillo', msg:'¿Cancelar <b>'+it.qty+'× '+esc(it.name)+'</b> del pedido #'+o.folio+'? Se descuenta del total.', cta:'Sí, cancelar', onConfirm: async ()=>{
+      it.cancelled = true; it.done = false;
+      recomputeTotals(o);
+      await saveOrder(o); renderComandas(); renderTickets(); toast('Platillo cancelado'); log('INFO','cancelar_platillo','folio='+o.folio+' item='+it.name);
+    }});
   });
   $$('#kGrid .kcancel').forEach(b => b.onclick = async e=>{
     const card = e.target.closest('.kcard'); const o = await idb.get('orders', card.dataset.oid);
-    if(!confirm('¿Cancelar TODO el pedido #'+o.folio+'? Saldrá de ventas y tendencias.')) return;
-    o.status='cancelado'; o.cancelled_at = nowISO();
-    await saveOrder(o); renderComandas(); renderTickets(); updateKCount(); toast('Pedido '+o.folio+' cancelado'); log('WARN','cancelar_pedido','folio='+o.folio);
+    showConfirm({ title:'Cancelar pedido', msg:'¿Cancelar <b>todo el pedido #'+o.folio+'</b>? Saldrá de ventas y tendencias.', cta:'Sí, cancelar pedido', onConfirm: async ()=>{
+      o.status='cancelado'; o.cancelled_at = nowISO();
+      await saveOrder(o); renderComandas(); renderTickets(); updateKCount(); toast('Pedido '+o.folio+' cancelado'); log('WARN','cancelar_pedido','folio='+o.folio);
+    }});
   });
   $$('#kGrid .kedit').forEach(b => b.onclick = async e=>{
     const card = e.target.closest('.kcard'); const o = await idb.get('orders', card.dataset.oid);
@@ -1193,10 +1238,12 @@ async function renderTickets(){
     S.corte=false; S.tkSel=b.dataset.oid;
     const o = await idb.get('orders', b.dataset.oid);
     if(o && o.status==='completado' && !o.paid_at){
-      if(confirm('Pedido #'+o.folio+' — ¿Ya se cobró este pedido? (Aceptar = Cobrado · Cancelar = sigue pendiente)')){
+      showCobro(o, async (method, pays)=>{
+        o.payment = Object.assign({}, o.payment, { method, pays: method==='Efectivo'?pays:0 });
         o.paid_at = nowISO();
         await saveOrder(o); toast('Cuenta cerrada: #'+o.folio+' cobrado'); log('INFO','cobro','folio='+o.folio+' método='+o.payment.method+' total='+o.total);
-      }
+        renderTickets();
+      });
     }
     renderTickets();
   });
@@ -1484,10 +1531,11 @@ $('#btnLogExport').onclick = async ()=>{
   const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='fancy-nancy-bitacora-'+todayKey()+'.txt'; a.click(); URL.revokeObjectURL(a.href);
   toast('Bitácora exportada');
 };
-$('#btnLogClear').onclick = async ()=>{
-  if(!confirm('¿Borrar toda la bitácora de diagnóstico?')) return;
-  for(const k of await idb.allKeys('logs')) await idb.del('logs', k);
-  _logBytes=0; _logSeq=0; await log('INFO','limpiar_bitacora','OK'); renderLogView();
+$('#btnLogClear').onclick = ()=>{
+  showConfirm({ title:'Borrar bitácora', msg:'¿Borrar <b>toda la bitácora de diagnóstico</b>? No se puede deshacer.', cta:'Sí, borrar', onConfirm: async ()=>{
+    for(const k of await idb.allKeys('logs')) await idb.del('logs', k);
+    _logBytes=0; _logSeq=0; await log('INFO','limpiar_bitacora','OK'); renderLogView();
+  }});
 };
 $('#btnExport').onclick = async ()=>{
   const data = { exported_at: nowISO(), catalog: CAT, orders: await idb.all('orders'), movs: await idb.all('movs'), clients: await idb.all('clients') };
