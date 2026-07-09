@@ -1469,7 +1469,7 @@ function sendTicketWhatsApp(){
   log('INFO','whatsapp_send','folio='+(o?o.folio:'?')+' tel='+(phone||'—'));
 }
 $('#btnImg').onclick = ()=>shareTicketImage(false);
-$('#btnWA').onclick = sendTicketWhatsApp;
+$('#btnWA').onclick = ()=>shareTicketImage(true);
 $('#btnPrint').onclick = ()=>window.print();
 
 /* ================= VISTA: CONFIG ================= */
