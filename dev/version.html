@@ -84,6 +84,20 @@
 <li>Para probar: en "Nuevo pedido" → Cliente y entrega, captura a mano (sin tocar sugerencias) un teléfono que ya exista en tu catálogo de clientes → verifica en Config → Clientes que no se duplicó.</li>
 </ul>
 
+<hr>
+
+<h2>v14-beta — Feature 3/6: Ticket word-wrap + WhatsApp click-to-chat 🟢 EN PRUEBA</h2>
+<ul>
+<li>Los renglones largos del ticket (partidas con sabor + adicionales, notas) ahora se reparten por palabra a 32 caracteres (ancho del rollo de 58mm), con sangría — nunca truncan.</li>
+<li>Cada partida de sabor/adicional se muestra en su propia línea con el precio alineado a la derecha (antes iba todo en un paréntesis largo sin envolver).</li>
+<li>El mismo texto formateado alimenta impresión, imagen compartida y ahora también WhatsApp.</li>
+<li><b>WhatsApp click-to-chat real (sin backend):</b> el botón "Enviar por WhatsApp" ahora abre <code>wa.me</code> con el número del cliente y el ticket ya escrito — el mesero solo toca Enviar. Números MX de 10 dígitos se anteponen con 52. Sin teléfono guardado → abre el selector de contactos de WhatsApp.</li>
+<li>Envío 100% automático (sin que nadie toque nada) requeriría WhatsApp Business Platform + backend — fuera de alcance de este piloto.</li>
+<li>Rama: <code>feature/ticket-wrap-whatsapp</code> (desde <code>development</code>, independiente de add-ons por sabor aunque se prueban juntas aquí).</li>
+<li>Para probar: abre cualquier ticket con varios adicionales/notas largas → confirma que envuelve bien y no se corta → toca "Enviar por WhatsApp".</li>
+<li>Pendientes en la baraja v14-beta: modales Cobro/Confirm, reorden de Config, timer de cocina (Alexa/iPad).</li>
+</ul>
+
 <h2>v9 — Cerveza, historial e identidad</h2>
 <ul>
 <li>Cerveza con sabor independiente (sin costo) y cerillito como extra con costo, en grupos separados.</li>
