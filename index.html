@@ -124,6 +124,8 @@ table.cat input.num{width:84px}
 .heat .hl{font-size:10px;color:var(--muted)}
 .heat .hc{display:block;aspect-ratio:1;border-radius:2px}
 @media print{ #nav,#tkList,.noprint{display:none!important} body{background:#fff} }
+/* ===== franja de ambiente: dev = roja, prod = café (ver IS_DEV) ===== */
+body.env-dev #nav{background:#D23C3C}
 </style>
 </head>
 <body>
@@ -402,6 +404,9 @@ table.cat input.num{width:84px}
 
 <script>
 'use strict';
+// Ambiente: /dev/ (o ?env=dev) → barra roja; ruta raíz de producción → café.
+const IS_DEV = /\/dev\//.test(location.pathname) || /(^|[?&])env=dev(&|$)/.test(location.search);
+if(IS_DEV) document.body.classList.add('env-dev');
 /* ================= UTILIDADES ================= */
 const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
