@@ -124,6 +124,41 @@ table.cat input.num{width:84px}
 .heat .hl{font-size:10px;color:var(--muted)}
 .heat .hc{display:block;aspect-ratio:1;border-radius:2px}
 @media print{ #nav,#tkList,.noprint{display:none!important} body{background:#fff} }
+
+/* ===== Modal reutilizable: cobro + confirmación (reemplaza confirm() nativo) ===== */
+#fnScrim{display:none;position:fixed;inset:0;background:rgba(43,36,33,.45);z-index:60;align-items:center;justify-content:center;padding:18px}
+#fnScrim.open{display:flex}
+.fnModal{background:#fff;border-radius:16px;padding:20px;width:min(420px,92vw);max-height:88vh;overflow:auto;box-shadow:0 24px 60px rgba(43,36,33,.30)}
+.fnMHead{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.fnMHead h3{margin:0;font-size:19px}
+.fnMHead .sub{color:var(--muted);font-size:13px;margin:3px 0 0}
+.fnFolio{flex:none;font-size:12px;font-weight:800;color:var(--muted);background:var(--bg);border:1px solid var(--line);border-radius:999px;padding:4px 10px;font-variant-numeric:tabular-nums}
+.fnTot{display:flex;align-items:baseline;justify-content:space-between;gap:10px;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin:16px 0}
+.fnTot .lbl{font-size:12px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.fnTot .amt{font-size:30px;font-weight:800;font-variant-numeric:tabular-nums}
+.fnLbl{display:block;font-size:12px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin:0 0 6px}
+.fnSeg{display:flex;gap:6px}
+.fnSeg .fnChip{flex:1;min-height:46px;display:flex;align-items:center;justify-content:center;gap:6px;border-radius:12px;border:1px solid var(--line);background:#fff;color:var(--ink);font-weight:700;font-size:14px}
+.fnSeg .fnChip.sel{background:var(--accent);color:#fff;border-color:var(--accent)}
+.fnCash{margin-top:16px}
+.fnCash input{width:100%}
+.fnQuick{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.fnQuick button{min-height:40px;padding:8px 12px;border-radius:999px;background:var(--bg);border:1px solid var(--line);font-weight:700;font-size:13px;color:var(--ink)}
+.fnChange{display:flex;justify-content:space-between;align-items:center;margin-top:12px;padding-top:12px;border-top:1px dashed var(--line)}
+.fnChange .k{font-weight:700;color:var(--muted);font-size:13px}
+.fnChange .v{font-size:20px;font-weight:800;color:var(--ok);font-variant-numeric:tabular-nums}
+.fnChange .v.short{color:var(--bad)}
+.fnFoot{display:flex;gap:10px;margin-top:20px}
+.fnBtn{flex:1;min-height:50px;padding:10px 16px;font-weight:800;font-size:15px;border-radius:12px;border:none;color:#fff}
+.fnBtn.ghost{background:#fff;border:1px solid var(--line);color:var(--ink)}
+.fnBtn.ok{background:var(--ok)}
+.fnBtn.bad{background:var(--bad)}
+.fnBtn.primary{background:var(--accent)}
+.fnWarn{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:26px;margin:0 auto 12px;background:#FBE3E3;color:var(--bad);font-weight:800}
+.fnCBody{text-align:center;padding:6px 4px 0}
+.fnCBody h3{margin:0 0 8px;font-size:19px}
+.fnCBody p{margin:0;color:var(--muted);font-size:14px;line-height:1.5}
+.fnCBody .em{color:var(--ink);font-weight:700}
 </style>
 </head>
 <body>
@@ -398,6 +433,9 @@ table.cat input.num{width:84px}
   </div>
 </div>
 
+<!-- ============ Modal Cobro/Confirm (overlay) — v14-beta, feature 4/6 ============ -->
+<div id="fnScrim"></div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -412,6 +450,78 @@ const uuid = () => (crypto.randomUUID ? crypto.randomUUID() :
   'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {const r=Math.random()*16|0;return (c==='x'?r:(r&3|8)).toString(16);}));
 const todayKey = d => { const x = d?new Date(d):new Date(); return x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0')+'-'+String(x.getDate()).padStart(2,'0'); };
 function toast(msg){ const t=$('#toast'); t.textContent=msg; t.style.display='block'; clearTimeout(t._h); t._h=setTimeout(()=>t.style.display='none',2400); }
+
+/* ===== Modal reutilizable: cobro + confirmación (reemplaza confirm() nativo) ===== */
+const fnScrim = $('#fnScrim');
+function fnClose(){ fnScrim.classList.remove('open'); fnScrim.innerHTML=''; fnScrim.onclick=null; }
+
+// Confirmación destructiva. opts:{title, msg(html), cta, onConfirm}
+function showConfirm(opts){
+  fnScrim.innerHTML = `
+    <div class="fnModal" style="width:min(380px,92vw)" onclick="event.stopPropagation()">
+      <div class="fnWarn">✗</div>
+      <div class="fnCBody"><h3>${esc(opts.title)}</h3><p>${opts.msg||''}</p></div>
+      <div class="fnFoot">
+        <button class="fnBtn ghost" data-a="back">No, regresar</button>
+        <button class="fnBtn bad" data-a="ok">${esc(opts.cta||'Sí, cancelar')}</button>
+      </div>
+    </div>`;
+  fnScrim.classList.add('open');
+  fnScrim.onclick = e=>{ if(e.target===fnScrim) fnClose(); };
+  fnScrim.querySelector('[data-a=back]').onclick = fnClose;
+  fnScrim.querySelector('[data-a=ok]').onclick = ()=>{ fnClose(); opts.onConfirm&&opts.onConfirm(); };
+}
+
+// Cobro. o = pedido; onPaid(method, pays) al confirmar cobro.
+function showCobro(o, onPaid){
+  const total = o.total;
+  let method = (o.payment&&o.payment.method) || 'Efectivo';
+  let pays = (o.payment&&o.payment.method==='Efectivo'&&o.payment.pays) ? o.payment.pays : null;
+  function draw(){
+    const cash = method==='Efectivo';
+    const change = pays!=null ? pays-total : null;
+    const changeTxt = change==null ? '—' : (change<0 ? 'Faltan '+fmt(-change) : fmt(change));
+    fnScrim.innerHTML = `
+      <div class="fnModal" onclick="event.stopPropagation()">
+        <div class="fnMHead">
+          <div><h3>Cerrar cuenta</h3><p class="sub">${esc(o.customer&&o.customer.name||'Cliente genérico')}${o.customer&&o.customer.address?' · '+esc(o.customer.address):''} · ${esc(o.type||'')}</p></div>
+          <span class="fnFolio">#${esc(o.folio)}</span>
+        </div>
+        <div class="fnTot"><span class="lbl">Total a cobrar</span><span class="amt">${fmt(total)}</span></div>
+        <span class="fnLbl">Forma de pago</span>
+        <div class="fnSeg">
+          <button class="fnChip ${cash?'sel':''}" data-pay="Efectivo">💵 Efectivo</button>
+          <button class="fnChip ${!cash?'sel':''}" data-pay="Transferencia">📲 Transferencia</button>
+        </div>
+        ${cash ? `
+        <div class="fnCash">
+          <span class="fnLbl">Paga con</span>
+          <input id="fnPays" inputmode="decimal" placeholder="0" value="${pays!=null?pays:''}">
+          <div class="fnQuick">
+            <button data-q="${total}">Exacto</button>
+            <button data-q="200">$200</button>
+            <button data-q="500">$500</button>
+            <button data-q="1000">$1000</button>
+          </div>
+          <div class="fnChange"><span class="k">Cambio</span><span class="v ${change!=null&&change<0?'short':''}" id="fnChangeV">${changeTxt}</span></div>
+        </div>` : `<p class="sub" style="margin-top:14px;color:var(--muted);font-size:13px">Se registra como transferencia recibida. El corte del día la separa del efectivo.</p>`}
+        <div class="fnFoot">
+          <button class="fnBtn ghost" data-a="pend">Sigue pendiente</button>
+          <button class="fnBtn ok" data-a="cobrar">Marcar cobrado ✓</button>
+        </div>
+      </div>`;
+    fnScrim.querySelectorAll('[data-pay]').forEach(b=>b.onclick=()=>{ method=b.dataset.pay; if(method!=='Efectivo') pays=null; draw(); });
+    fnScrim.querySelectorAll('[data-q]').forEach(b=>b.onclick=()=>{ pays=Number(b.dataset.q); draw(); });
+    const inp = fnScrim.querySelector('#fnPays');
+    if(inp) inp.oninput = ()=>{ const v=inp.value.replace(/[^0-9.]/g,''); pays = v===''?null:Number(v);
+      const cv=fnScrim.querySelector('#fnChangeV'); if(cv){ const ch=pays!=null?pays-total:null; cv.textContent = ch==null?'—':(ch<0?'Faltan '+fmt(-ch):fmt(ch)); cv.classList.toggle('short', ch!=null&&ch<0); } };
+    fnScrim.querySelector('[data-a=pend]').onclick = fnClose;
+    fnScrim.querySelector('[data-a=cobrar]').onclick = ()=>{ fnClose(); onPaid(method, method==='Efectivo'?(pays||0):0); };
+  }
+  draw();
+  fnScrim.classList.add('open');
+  fnScrim.onclick = e=>{ if(e.target===fnScrim) fnClose(); };
+}
 
 /* ================= INDEXEDDB ================= */
 let db;
@@ -920,16 +1030,18 @@ async function renderComandas(){
   $$('#kGrid .kx').forEach(b => b.onclick = async e=>{
     const card = e.target.closest('.kcard'); const o = await idb.get('orders', card.dataset.oid);
     const it = o.items[Number(e.target.dataset.ix)];
-    if(!confirm('¿Cancelar "'+it.qty+'× '+it.name+'" del pedido #'+o.folio+'? Se descuenta del total.')) return;
-    it.cancelled = true; it.done = false;
-    recomputeTotals(o);
-    await saveOrder(o); renderComandas(); renderTickets(); toast('Platillo cancelado'); log('INFO','cancelar_platillo','folio='+o.folio+' item='+it.name);
+    showConfirm({ title:'Cancelar platillo', msg:'¿Cancelar <b>'+it.qty+'× '+esc(it.name)+'</b> del pedido #'+o.folio+'? Se descuenta del total.', cta:'Sí, cancelar', onConfirm: async ()=>{
+      it.cancelled = true; it.done = false;
+      recomputeTotals(o);
+      await saveOrder(o); renderComandas(); renderTickets(); toast('Platillo cancelado'); log('INFO','cancelar_platillo','folio='+o.folio+' item='+it.name);
+    }});
   });
   $$('#kGrid .kcancel').forEach(b => b.onclick = async e=>{
     const card = e.target.closest('.kcard'); const o = await idb.get('orders', card.dataset.oid);
-    if(!confirm('¿Cancelar TODO el pedido #'+o.folio+'? Saldrá de ventas y tendencias.')) return;
-    o.status='cancelado'; o.cancelled_at = nowISO();
-    await saveOrder(o); renderComandas(); renderTickets(); updateKCount(); toast('Pedido '+o.folio+' cancelado'); log('WARN','cancelar_pedido','folio='+o.folio);
+    showConfirm({ title:'Cancelar pedido', msg:'¿Cancelar <b>todo el pedido #'+o.folio+'</b>? Saldrá de ventas y tendencias.', cta:'Sí, cancelar pedido', onConfirm: async ()=>{
+      o.status='cancelado'; o.cancelled_at = nowISO();
+      await saveOrder(o); renderComandas(); renderTickets(); updateKCount(); toast('Pedido '+o.folio+' cancelado'); log('WARN','cancelar_pedido','folio='+o.folio);
+    }});
   });
   $$('#kGrid .kedit').forEach(b => b.onclick = async e=>{
     const card = e.target.closest('.kcard'); const o = await idb.get('orders', card.dataset.oid);
@@ -1059,10 +1171,12 @@ async function renderTickets(){
     S.corte=false; S.tkSel=b.dataset.oid;
     const o = await idb.get('orders', b.dataset.oid);
     if(o && o.status==='completado' && !o.paid_at){
-      if(confirm('Pedido #'+o.folio+' — ¿Ya se cobró este pedido? (Aceptar = Cobrado · Cancelar = sigue pendiente)')){
+      showCobro(o, async (method, pays)=>{
+        o.payment = Object.assign({}, o.payment, { method, pays: method==='Efectivo'?pays:0 });
         o.paid_at = nowISO();
         await saveOrder(o); toast('Cuenta cerrada: #'+o.folio+' cobrado'); log('INFO','cobro','folio='+o.folio+' método='+o.payment.method+' total='+o.total);
-      }
+        renderTickets();
+      });
     }
     renderTickets();
   });
@@ -1307,10 +1421,11 @@ $('#btnLogExport').onclick = async ()=>{
   const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='fancy-nancy-bitacora-'+todayKey()+'.txt'; a.click(); URL.revokeObjectURL(a.href);
   toast('Bitácora exportada');
 };
-$('#btnLogClear').onclick = async ()=>{
-  if(!confirm('¿Borrar toda la bitácora de diagnóstico?')) return;
-  for(const k of await idb.allKeys('logs')) await idb.del('logs', k);
-  _logBytes=0; _logSeq=0; await log('INFO','limpiar_bitacora','OK'); renderLogView();
+$('#btnLogClear').onclick = ()=>{
+  showConfirm({ title:'Borrar bitácora', msg:'¿Borrar <b>toda la bitácora de diagnóstico</b>? No se puede deshacer.', cta:'Sí, borrar', onConfirm: async ()=>{
+    for(const k of await idb.allKeys('logs')) await idb.del('logs', k);
+    _logBytes=0; _logSeq=0; await log('INFO','limpiar_bitacora','OK'); renderLogView();
+  }});
 };
 $('#btnExport').onclick = async ()=>{
   const data = { exported_at: nowISO(), catalog: CAT, orders: await idb.all('orders'), movs: await idb.all('movs'), clients: await idb.all('clients') };
