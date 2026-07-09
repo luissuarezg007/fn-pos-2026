@@ -106,7 +106,8 @@ label{display:block;font-size:12px;font-weight:700;color:var(--muted);margin:10p
 #wmark{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:2;font-weight:900;font-size:150px;opacity:.13;line-height:1}
 #wmark.paid{color:#2E9E5B}#wmark.pend{color:#D23C3C}
 /* ---------- CONFIG ---------- */
-.cfgGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
+.cfgGrid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:640px){.cfgGrid{grid-template-columns:1fr}}
 table.cat{width:100%;border-collapse:collapse;font-size:13px}
 table.cat th,table.cat td{border-bottom:1px solid var(--line);padding:7px 6px;text-align:left}
 table.cat input{min-height:38px;padding:6px 8px;width:100%}
@@ -451,24 +452,6 @@ body.env-dev #nav{background:#D23C3C}
         <button class="btn primary" id="cfgSaveBiz" style="margin-top:12px">Guardar ajustes</button>
       </div>
       <div class="card">
-        <b>Sincronización (Supabase)</b>
-        <label>URL del proyecto</label><input id="cfgSbUrl" style="width:100%" placeholder="https://xxxx.supabase.co">
-        <label>Clave anon (public)</label><input id="cfgSbKey" style="width:100%" placeholder="eyJ…">
-        <div class="row" style="margin-top:12px">
-          <button class="btn primary" id="cfgSbTest">Guardar y probar conexión</button>
-          <button class="btn ghost" id="btnSyncNow">Sincronizar ahora</button>
-        </div>
-        <div id="sbStatus" class="small" style="margin-top:8px">Sin configurar — la app funciona local y guarda pendientes.</div>
-      </div>
-      <div class="card">
-        <b>Respaldo local</b>
-        <p class="small muted">Exporta todos los pedidos y el catálogo a un archivo JSON (respaldo manual adicional a la nube).</p>
-        <div class="row">
-          <button class="btn ghost" id="btnExport">Exportar JSON</button>
-          <label class="btn ghost" style="display:flex;align-items:center;margin:0">Importar JSON<input type="file" id="impFile" accept=".json" style="display:none"></label>
-        </div>
-      </div>
-      <div class="card">
         <b>Horario y notas rápidas</b>
         <p class="small muted">Días y horas de apertura — ajustan el mapa de calor de Tendencias. Y notas rápidas que aparecen como chips al tomar el pedido.</p>
         <label>Días de apertura</label>
@@ -488,6 +471,24 @@ body.env-dev #nav{background:#D23C3C}
         <label style="margin-top:12px">Notas rápidas (chips en el pedido)</label>
         <div id="noteRows"></div>
         <div class="row" style="margin:8px 0 4px"><button class="btn ghost" id="btnAddNote">+ Nota</button><button class="btn primary" id="btnSaveHours">Guardar horario y notas</button></div>
+      </div>
+      <div class="card">
+        <b>Sincronización (Supabase)</b>
+        <label>URL del proyecto</label><input id="cfgSbUrl" style="width:100%" placeholder="https://xxxx.supabase.co">
+        <label>Clave anon (public)</label><input id="cfgSbKey" style="width:100%" placeholder="eyJ…">
+        <div class="row" style="margin-top:12px">
+          <button class="btn primary" id="cfgSbTest">Guardar y probar conexión</button>
+          <button class="btn ghost" id="btnSyncNow">Sincronizar ahora</button>
+        </div>
+        <div id="sbStatus" class="small" style="margin-top:8px">Sin configurar — la app funciona local y guarda pendientes.</div>
+      </div>
+      <div class="card">
+        <b>Respaldo local</b>
+        <p class="small muted">Exporta todos los pedidos y el catálogo a un archivo JSON (respaldo manual adicional a la nube).</p>
+        <div class="row">
+          <button class="btn ghost" id="btnExport">Exportar JSON</button>
+          <label class="btn ghost" style="display:flex;align-items:center;margin:0">Importar JSON<input type="file" id="impFile" accept=".json" style="display:none"></label>
+        </div>
       </div>
       <div class="card" style="grid-column:1/-1">
         <b>Catálogo de clientes <span id="cliCount" class="muted small"></span></b>
