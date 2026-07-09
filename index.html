@@ -159,6 +159,28 @@ table.cat input.num{width:84px}
 .fnCBody h3{margin:0 0 8px;font-size:19px}
 .fnCBody p{margin:0;color:var(--muted);font-size:14px;line-height:1.5}
 .fnCBody .em{color:var(--ink);font-weight:700}
+
+/* ===== Timer de cocina (Nuevo pedido) — presets 1..7 min ===== */
+#timerBlock{margin-top:2px}
+.tmHead{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.tmConnBtn{display:inline-flex;align-items:center;gap:8px;min-height:38px;padding:7px 11px;border-radius:999px;border:1px solid var(--line);background:#fff;color:var(--ink);font-weight:700;font-size:12.5px;white-space:nowrap}
+.tmDot{width:9px;height:9px;border-radius:50%;background:var(--muted);flex:none}
+.tmDot.on{background:var(--ok)}
+.tmPresets{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}
+.tmPreset{min-height:72px;border-radius:14px;border:1px solid var(--line);background:#fff;color:var(--ink);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+.tmPreset .n{font-weight:800;font-size:28px;line-height:1}
+.tmPreset .u{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.tmPreset:last-child{grid-column:2}
+.tmPreset:hover{border-color:var(--accent)}
+.tmPreset:active{background:var(--bg)}
+.tmActive{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+.tmChip{display:flex;align-items:center;gap:10px;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:8px 8px 8px 12px}
+.tmChip.done{background:#FBE3E3;border-color:var(--bad);animation:tmBlink 1s steps(2,end) infinite}
+@keyframes tmBlink{50%{background:#fff}}
+.tmTime{font-variant-numeric:tabular-nums;font-weight:800;font-size:18px;min-width:54px;text-align:center}
+.tmName{font-size:12px;color:var(--muted);font-weight:700;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tmX{background:none;border:none;color:var(--bad);font-size:18px;font-weight:800;min-height:34px;min-width:34px}
+.tmStop{min-height:34px;padding:6px 12px;border-radius:999px;background:var(--bad);color:#fff;border:none;font-weight:800;font-size:13px}
 </style>
 </head>
 <body>
@@ -233,6 +255,16 @@ table.cat input.num{width:84px}
         <div class="row" style="margin-top:12px;gap:8px">
           <button class="btn primary" id="btnSave" style="flex:1">Guardar pedido</button>
           <button class="btn secondary" id="btnSaveTicket" style="flex:1">Guardar + ticket</button>
+        </div>
+        <div id="timerBlock">
+          <hr style="border:none;border-top:1px solid var(--line);margin:14px 0 10px">
+          <div class="tmHead">
+            <b>⏱ Timer de cocina</b>
+            <button class="tmConnBtn" id="tmConnBtn" type="button"><span class="tmDot" id="tmDot"></span><span id="tmConnLbl">Timer en iPad</span> ▾</button>
+          </div>
+          <div class="small muted" id="tmHint" style="margin-top:4px">Toca los minutos para iniciar. El aviso suena en este iPad.</div>
+          <div class="tmPresets" id="tmPresets"></div>
+          <div class="tmActive" id="tmActive"></div>
         </div>
       </div>
     </div>
@@ -1626,6 +1658,101 @@ function switchView(v){
 $$('.navbtn[data-view]').forEach(b=>b.onclick=()=>switchView(b.dataset.view));
 
 /* ================= INIT ================= */
+
+/* ===== Timer de cocina (Nuevo pedido): presets 1..7 min ·
+   backend iPad (local) o Alexa (stub de conexión).
+   NOTA para dev: la cuenta regresiva local funciona; la integración real
+   con Alexa (Login with Amazon + skill Timers API) e iOS notifications va
+   en backend — ver design_handoff_kitchen_timer/README.md. ===== */
+const TIMER_PRESETS = [1,2,3,4,5,6,7];
+const TM = { backend:'ipad', alexaLinked:false, list:[] };
+function tmLoad(){ try{ const s=JSON.parse(localStorage.getItem('fnTimers')||'{}'); TM.backend=s.backend==='alexa'?'alexa':'ipad'; TM.alexaLinked=!!s.alexaLinked; TM.list=Array.isArray(s.list)?s.list.filter(t=>t&&t.endsAt>Date.now()-3600000):[]; }catch(e){} }
+function tmSave(){ try{ localStorage.setItem('fnTimers', JSON.stringify({backend:TM.backend, alexaLinked:TM.alexaLinked, list:TM.list})); }catch(e){} }
+function tmFmt(ms){ const s=Math.max(0,Math.ceil(ms/1000)); return String(s/60|0).padStart(2,'0')+':'+String(s%60).padStart(2,'0'); }
+
+let _tmAudio=null; const _tmAlarms={};
+function tmStartAlarm(id){ if(_tmAlarms[id]) return;
+  try{ _tmAudio=_tmAudio||new (window.AudioContext||window.webkitAudioContext)(); }catch(e){ _tmAudio=null; }
+  const beep=()=>{ if(!_tmAudio) return; const o=_tmAudio.createOscillator(), g=_tmAudio.createGain(); o.type='square'; o.frequency.value=880; g.gain.value=.0001; o.connect(g); g.connect(_tmAudio.destination); const t=_tmAudio.currentTime; g.gain.exponentialRampToValueAtTime(.25,t+.02); g.gain.exponentialRampToValueAtTime(.0001,t+.35); o.start(t); o.stop(t+.36); };
+  beep(); _tmAlarms[id]=setInterval(beep,700);
+}
+function tmStopAlarm(id){ if(_tmAlarms[id]){ clearInterval(_tmAlarms[id]); delete _tmAlarms[id]; } }
+
+function tmRender(){
+  const pr=$('#tmPresets'); if(!pr) return;
+  pr.innerHTML = TIMER_PRESETS.map(m=>`<button class="tmPreset" data-min="${m}" type="button"><span class="n">${m}</span><span class="u">min</span></button>`).join('');
+  pr.querySelectorAll('.tmPreset').forEach(b=>b.onclick=()=>tmStart(Number(b.dataset.min)));
+  const linked = TM.backend==='alexa' && TM.alexaLinked;
+  $('#tmConnLbl').textContent = TM.backend==='alexa' ? (TM.alexaLinked?'Alexa':'Alexa · conectar') : 'Timer en iPad';
+  $('#tmDot').classList.toggle('on', linked);
+  $('#tmHint').textContent = TM.backend==='alexa'
+    ? (TM.alexaLinked ? 'El aviso se anuncia en el Echo de la cocina y en este iPad.' : 'Elige "Alexa" y conecta la cuenta para anunciar en el Echo.')
+    : 'Toca los minutos para iniciar. El aviso suena en este iPad.';
+  const act=$('#tmActive');
+  act.innerHTML = TM.list.map(t=>{
+    const done = t.firedAt || t.endsAt<=Date.now();
+    return `<div class="tmChip ${done?'done':''}" data-id="${t.id}">
+      <span class="tmTime">${done?'00:00':tmFmt(t.endsAt-Date.now())}</span>
+      <span class="tmName">${(t.label||'Timer').replace(/[<>&]/g,'')}</span>
+      ${done?'<button class="tmStop" data-stop="'+t.id+'" type="button">Detener</button>':'<button class="tmX" data-del="'+t.id+'" type="button">✕</button>'}
+    </div>`;
+  }).join('');
+  act.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>tmRemove(b.dataset.del));
+  act.querySelectorAll('[data-stop]').forEach(b=>b.onclick=()=>{ tmStopAlarm(b.dataset.stop); tmRemove(b.dataset.stop); });
+}
+function tmStart(min){
+  const t={ id:uuid(), label:'Timer '+min+' min', endsAt:Date.now()+min*60000, firedAt:null };
+  TM.list.push(t); tmSave(); tmRender();
+  toast('⏱ Timer '+min+' min iniciado'+(TM.backend==='alexa'&&TM.alexaLinked?' (Alexa)':''));
+  try{ log('INFO','timer_start','min='+min+' backend='+TM.backend); }catch(e){}
+}
+function tmRemove(id){ tmStopAlarm(id); TM.list=TM.list.filter(t=>t.id!==id); tmSave(); tmRender(); }
+function tmFire(t){
+  t.firedAt=Date.now(); tmSave();
+  toast('⏱ ¡Listo! '+(t.label||'Timer')); tmStartAlarm(t.id);
+  try{ log('INFO','timer_fire','label='+(t.label||'Timer')+' backend='+TM.backend); }catch(e){}
+  if(TM.backend==='alexa' && TM.alexaLinked) toast('🔊 Alexa anuncia en cocina: "'+(t.label||'Timer')+' listo"');
+  if(window.Notification && Notification.permission==='granted'){ try{ new Notification('Fancy Nancy',{body:'⏱ '+(t.label||'Timer')+' listo'}); }catch(e){} }
+}
+function tmTick(){ TM.list.forEach(t=>{ if(!t.firedAt && t.endsAt<=Date.now()){ tmFire(t); } }); tmRender(); }
+
+// Selector de backend + conexión Alexa (stub de Login with Amazon)
+function tmConnMenu(){
+  fnScrim.innerHTML = `
+    <div class="fnModal" style="width:min(380px,92vw)" onclick="event.stopPropagation()">
+      <div class="fnMHead"><div><h3>Avisos del timer</h3><p class="sub">¿Dónde suena el aviso al terminar?</p></div></div>
+      <div style="display:flex;flex-direction:column;gap:10px;margin-top:14px">
+        <button class="fnBtn ghost" data-b="ipad" style="justify-content:flex-start;text-align:left">📱 Timer en este iPad<br><span style="font-weight:600;color:var(--muted);font-size:12px">Suena aquí. Funciona sin cuenta.</span></button>
+        <button class="fnBtn ghost" data-b="alexa" style="justify-content:flex-start;text-align:left">🔊 Alexa (Echo de cocina)<br><span style="font-weight:600;color:var(--muted);font-size:12px">${TM.alexaLinked?'Cuenta conectada ✓':'Requiere conectar cuenta de Amazon'}</span></button>
+      </div>
+      <div class="fnFoot"><button class="fnBtn ghost" data-a="close">Cerrar</button></div>
+    </div>`;
+  fnScrim.classList.add('open');
+  fnScrim.onclick=e=>{ if(e.target===fnScrim) fnClose(); };
+  fnScrim.querySelector('[data-a=close]').onclick=fnClose;
+  fnScrim.querySelector('[data-b=ipad]').onclick=()=>{ TM.backend='ipad'; tmSave(); fnClose(); tmRender(); };
+  fnScrim.querySelector('[data-b=alexa]').onclick=()=>{ TM.backend='alexa'; tmSave(); if(TM.alexaLinked){ fnClose(); tmRender(); } else { tmAlexaConnect(); } };
+}
+function tmAlexaConnect(){
+  fnScrim.innerHTML = `
+    <div class="fnModal" style="width:min(380px,92vw)" onclick="event.stopPropagation()">
+      <div class="fnMHead"><div><h3>Conectar con Alexa</h3><p class="sub">Inicia sesión con tu cuenta de Amazon (Login with Amazon)</p></div></div>
+      <label style="display:block;margin-top:14px">Cuenta de Amazon</label>
+      <input id="tmAlexaMail" inputmode="email" placeholder="correo@ejemplo.com" style="width:100%">
+      <p class="small muted" style="margin-top:10px">Demo: la vinculación real (OAuth + skill de Timers) se implementa en backend — ver README del handoff.</p>
+      <div class="fnFoot">
+        <button class="fnBtn ghost" data-a="back">Cancelar</button>
+        <button class="fnBtn primary" data-a="link">Conectar</button>
+      </div>
+    </div>`;
+  fnScrim.classList.add('open');
+  fnScrim.onclick=e=>{ if(e.target===fnScrim) fnClose(); };
+  fnScrim.querySelector('[data-a=back]').onclick=()=>{ TM.backend='ipad'; tmSave(); fnClose(); tmRender(); };
+  fnScrim.querySelector('[data-a=link]').onclick=()=>{ TM.alexaLinked=true; TM.backend='alexa'; tmSave(); fnClose(); tmRender(); toast('Alexa conectada ✓'); try{ if(window.Notification && Notification.permission==='default') Notification.requestPermission(); }catch(e){} };
+}
+function tmInit(){ tmLoad(); tmRender(); const b=$('#tmConnBtn'); if(b) b.onclick=tmConnMenu; setInterval(tmTick,1000); }
+tmInit();
+
 (async function init(){
   try{ await openDB(); }
   catch(e){
