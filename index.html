@@ -1915,7 +1915,7 @@ $$('.navbtn[data-view]').forEach(b=>b.onclick=()=>switchView(b.dataset.view));
    NOTA para dev: la cuenta regresiva local funciona; la integración real
    con Alexa (Login with Amazon + skill Timers API) e iOS notifications va
    en backend — ver design_handoff_kitchen_timer/README.md. ===== */
-const TIMER_PRESETS = [1,2,3,4,5,6,7];
+const TIMER_PRESETS = [1,2,3,4,6,7,8];
 const TM = { backend:'ipad', alexaLinked:false, list:[] };
 function tmLoad(){ try{ const s=JSON.parse(localStorage.getItem('fnTimers')||'{}'); TM.backend=s.backend==='alexa'?'alexa':'ipad'; TM.alexaLinked=!!s.alexaLinked; TM.list=Array.isArray(s.list)?s.list.filter(t=>t&&t.endsAt>Date.now()-3600000):[]; }catch(e){} }
 function tmSave(){ try{ localStorage.setItem('fnTimers', JSON.stringify({backend:TM.backend, alexaLinked:TM.alexaLinked, list:TM.list})); }catch(e){} }
