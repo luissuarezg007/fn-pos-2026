@@ -63,9 +63,12 @@
 <ul>
 <li>Nuevo flujo rápido de captura: tap en producto → cantidad (teclado grande) → reparto por sabor (soporta mitad/mitad) → adicionales por cada partida.</li>
 <li>Cada sabor elegido es su propia línea del carrito con sus propios adicionales.</li>
+<li><b>Notas por sabor (nuevo):</b> cada línea del stack de sabores es tocable — al tocarla queda "activa" (borde naranja + punto) y un único panel de notas debajo ("Notas de &lt;sabor&gt;") edita las notas de esa línea. Reemplaza la nota única global del pedido; cada sabor guarda sus propias notas de forma independiente sin perderlas al cambiar de línea activa.</li>
+<li>Fix de comanda: los botones Editar + Cancelar quedan en una fila y Completar ocupa el ancho completo en la fila de abajo (antes se apilaban los 3 por un CSS que forzaba ancho completo en todos).</li>
+<li>Fix de ticket: el logo de fondo se repite verticalmente (imagen + 10% de espacio) tanto en la imagen final como en la vista previa en pantalla — antes solo se repetía en la imagen compartida.</li>
 <li>Config → Catálogo de productos: checkbox "Adicionales" por producto + nueva sección "Catálogo de adicionales".</li>
 <li>El modal clásico de captura queda marcado como código en desuso (a eliminar tras el piloto).</li>
-<li>Rama <code>feature/addons-sabor</code>.</li>
+<li>Rama <code>feature/addons-sabor</code> (+ <code>feature/notes-per-flavor</code>, <code>fix/comanda-buttons</code>).</li>
 </ul>
 
 <h3>3 · Ticket word-wrap + WhatsApp click-to-chat 🟢 EN PRUEBA</h3>

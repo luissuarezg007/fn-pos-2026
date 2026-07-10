@@ -189,6 +189,16 @@ body.env-dev #nav{background:#D23C3C}
 .f-stepper b{min-width:22px;text-align:center;font-size:17px;font-weight:800}
 .f-line-ad{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}
 .f-chip.sm{padding:7px 12px;font-size:13px;min-height:38px}
+.f-line{cursor:pointer;transition:border-color .12s ease,background .12s ease}
+.f-line.active{border-color:var(--accent);background:var(--accent-soft)}
+.f-line.split.active{border-color:var(--accent)}
+.f-editdot{width:8px;height:8px;border-radius:50%;background:var(--accent);display:none;margin-right:6px;vertical-align:middle}
+.f-line.active .f-editdot{display:inline-block}
+.f-line-spec{margin-top:9px;padding-top:9px;border-top:1px dashed var(--line);font-size:12px;color:var(--accent);font-weight:700}
+.notesCard{margin-top:14px;border:1.5px solid var(--line);border-radius:14px;padding:14px;background:var(--bg)}
+.notesHd{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.notesTarget{font-size:14px;font-weight:800;color:var(--accent)}
+.f-chip.notechip.on{background:var(--accent);color:#fff;border-color:var(--accent)}
 .f-cta{display:flex;gap:10px;margin-top:16px}
 .f-cta .fb{border:none;border-radius:12px;padding:17px;font-size:18px;font-weight:800;font-family:inherit;flex:1}
 .f-cta .fb.primary{background:var(--accent);color:#fff}
@@ -2030,13 +2040,13 @@ tmInit();
 <script>
 (function(){
   const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
-  const FS={pid:null,prod:null,g:null,gi:-1,flavors:null,step:1,qty:0,qStr:'',lines:[],splitMode:false,splitBuf:[],last:null,adList:[],noteTags:[],noteFree:''};
+  const FS={pid:null,prod:null,g:null,gi:-1,flavors:null,step:1,qty:0,qStr:'',lines:[],splitMode:false,splitBuf:[],last:null,adList:[],activeLine:null};
   function flavGroup(p){ const gs=p.groups||[]; for(let i=0;i<gs.length;i++){ const L=listById(gs[i].listId); if(L) return {gi:i,g:gs[i],opts:L.options||[]}; } return null; }
   window.openFast=function(pid){
     const p=CAT.products.find(x=>x.id===pid); if(!p) return;
     const fg=flavGroup(p);
     FS.pid=pid; FS.prod=p; FS.g=fg?fg.g:null; FS.gi=fg?fg.gi:-1; FS.flavors=fg?fg.opts:null;
-    FS.step=1; FS.qty=0; FS.qStr=''; FS.lines=[]; FS.splitMode=false; FS.splitBuf=[]; FS.last=null; FS.noteTags=[]; FS.noteFree=''; FS.adList=(p.allowAddons?(CAT.addonList||[]):[]);
+    FS.step=1; FS.qty=0; FS.qStr=''; FS.lines=[]; FS.splitMode=false; FS.splitBuf=[]; FS.last=null; FS.activeLine=null; FS.adList=(p.allowAddons?(CAT.addonList||[]):[]);
     $('#fastBack').classList.add('open'); renderFast();
   };
   $('#fClose').onclick=()=>$('#fastBack').classList.remove('open');
@@ -2066,13 +2076,20 @@ tmInit();
     const grid='<div class="f-fgrid">'+FS.flavors.map(o=>{ const c=lineQtyFor(o.n); return '<button class="f-fbtn'+(c?' has':'')+(FS.splitMode&&FS.splitBuf[0]===o.n?' pick':'')+'" data-flav="'+o.n+'"><span>'+o.n+(o.p?' +'+o.p:'')+'</span>'+(c?'<span class="f-rgt"><span class="f-badge">'+c+'</span></span>':'')+'</button>'; }).join('')+'</div>';
     const hint='<div class="f-hint'+(FS.splitMode?' show':'')+'">'+(FS.splitBuf.length===0?'Mitad y mitad — toca el 1.er sabor':'Mitad <b>'+FS.splitBuf[0]+'</b> y… toca el 2.º sabor')+' · <span style="text-decoration:underline" data-splitcancel>cancelar</span></div>';
     const tools='<div class="f-tools"><button class="f-tool'+(FS.splitMode?' on':'')+'" data-split>½ Mitad y mitad</button>'+(left>0&&FS.last?'<button class="f-tool fill" data-fill>Completar con '+FS.last+' (×'+left+')</button>':'')+(FS.lines.length?'<button class="f-tool" data-clear>Vaciar</button>':'')+'</div>';
-    const stack=FS.lines.length?('<div class="f-seclbl">Sabores · cada uno con sus adicionales</div><div class="f-stack">'+FS.lines.map(l=>{
+    const stack=FS.lines.length?('<div class="f-seclbl">Sabores · toca uno para editar sus notas</div><div class="f-stack">'+FS.lines.map(l=>{
       const label=l.split?('½ '+l.split[0]+' / mitad '+l.split[1]):l.flavor;
+      const isActive=l.key===FS.activeLine;
       const adRow=adList.length?('<div class="f-line-ad">'+adList.map(a=>'<button class="f-chip sm'+(l.adic.find(x=>x.n===a.n)?' on':'')+'" data-lk="'+l.key+'" data-ladn="'+a.n.replace(/"/g,'&quot;')+'">'+a.n+(a.p?' +'+a.p:'')+'</button>').join('')+'</div>'):'';
-      return '<div class="f-line'+(l.split?' split':'')+'"><div class="f-line-hd"><span class="f-line-nm">'+label+'</span><span class="f-stepper"><button data-lminus="'+l.key+'">−</button><b>'+l.qty+'</b><button data-lplus="'+l.key+'">+</button></span></div>'+adRow+'</div>';
+      const specParts=[label]; if(l.adic.length) specParts.push('+ '+l.adic.map(o=>o.n).join(', ')); if(l.notes&&l.notes.length) specParts.push('* '+l.notes.join(', ')); if(l.noteFree&&l.noteFree.trim()) specParts.push('* '+l.noteFree.trim());
+      return '<div class="f-line'+(l.split?' split':'')+(isActive?' active':'')+'" data-selline="'+l.key+'"><div class="f-line-hd"><span class="f-line-nm"><span class="f-editdot"></span>'+label+'</span><span class="f-stepper"><button data-lminus="'+l.key+'">−</button><b>'+l.qty+'</b><button data-lplus="'+l.key+'">+</button></span></div>'+adRow+'<div class="f-line-spec">'+specParts.join('  ')+'</div></div>';
     }).join('')+'</div>'):'';
     const presets=(CAT.settings&&CAT.settings.notePresets)||[];
-    const noteBlock='<div class="f-seclbl">Nota</div>'+(presets.length?'<div class="f-notechips">'+presets.map(t=>'<button class="f-chip'+(FS.noteTags.includes(t)?' on':'')+'" data-note="'+t.replace(/"/g,'&quot;')+'">'+t+'</button>').join('')+'</div>':'')+'<textarea class="f-notes" id="fNotes" rows="2" placeholder="Otra nota a mano…">'+FS.noteFree+'</textarea>';
+    const activeL=FS.lines.find(l=>l.key===FS.activeLine);
+    const activeLbl=activeL?(activeL.split?('½ '+activeL.split[0]+' / mitad '+activeL.split[1]):activeL.flavor):'';
+    const noteBlock=!FS.lines.length?'':('<div class="notesCard"><div class="notesHd"><span class="f-seclbl" style="margin:0">Notas de</span><span class="notesTarget">'+(activeLbl||'—')+'</span></div>'
+      +(activeL?((presets.length?'<div class="f-notechips">'+presets.map(t=>'<button class="f-chip notechip'+(activeL.notes.includes(t)?' on':'')+'" data-note="'+t.replace(/"/g,'&quot;')+'">'+t+'</button>').join('')+'</div>':'')+'<textarea class="f-notes" id="fNotes" rows="2" placeholder="Otra nota a mano…">'+(activeL.noteFree||'')+'</textarea>')
+        :'<p class="small muted" style="margin:8px 0 0">Toca un sabor arriba para agregarle notas.</p>')
+      +'</div>');
     return '<div class="f-title">¿De qué? <span style="color:var(--muted);font-size:15px">y cómo</span></div>'
       +'<p class="f-sub">Toca un sabor por cada partida. Abajo se apilan — ponle adicionales a cada uno.</p>'
       +counter+hint+grid+tools+stack+noteBlock
@@ -2081,23 +2098,24 @@ tmInit();
   function wire(){
     $$('#fBody [data-k]').forEach(b=>b.onclick=()=>key(b.dataset.k));
     $$('#fBody [data-qset]').forEach(b=>b.onclick=()=>{ FS.qStr=b.dataset.qset; commitQty(); });
-    const back=$('#fBody [data-back]'); if(back) back.onclick=()=>{ FS.step=1; FS.lines=[]; FS.splitMode=false; FS.splitBuf=[]; renderFast(); };
+    const back=$('#fBody [data-back]'); if(back) back.onclick=()=>{ FS.step=1; FS.lines=[]; FS.splitMode=false; FS.splitBuf=[]; FS.activeLine=null; renderFast(); };
     $$('#fBody [data-flav]').forEach(b=>b.onclick=()=>flavTap(b.dataset.flav));
     $$('#fBody [data-dec]').forEach(b=>b.onclick=e=>{ e.stopPropagation(); dec(b.dataset.dec); });
     const sp=$('#fBody [data-split]'); if(sp) sp.onclick=()=>{ FS.splitMode=!FS.splitMode; FS.splitBuf=[]; renderFast(); };
     const spc=$('#fBody [data-splitcancel]'); if(spc) spc.onclick=()=>{ FS.splitMode=false; FS.splitBuf=[]; renderFast(); };
-    const fill=$('#fBody [data-fill]'); if(fill) fill.onclick=()=>{ const left=FS.qty-assignedCount(); const ln=FS.lines.find(l=>l.flavor===FS.last); if(ln) ln.qty+=left; else if(FS.last) FS.lines.push({key:lk(),flavor:FS.last,split:null,qty:left,adic:[]}); renderFast(); };
-    const clr=$('#fBody [data-clear]'); if(clr) clr.onclick=()=>{ FS.lines=[]; FS.splitMode=false; FS.splitBuf=[]; renderFast(); };
+    const fill=$('#fBody [data-fill]'); if(fill) fill.onclick=()=>{ const left=FS.qty-assignedCount(); const ln=FS.lines.find(l=>l.flavor===FS.last); if(ln){ ln.qty+=left; FS.activeLine=ln.key; } else if(FS.last){ const nl={key:lk(),flavor:FS.last,split:null,qty:left,adic:[],notes:[],noteFree:''}; FS.lines.push(nl); FS.activeLine=nl.key; } renderFast(); };
+    const clr=$('#fBody [data-clear]'); if(clr) clr.onclick=()=>{ FS.lines=[]; FS.splitMode=false; FS.splitBuf=[]; FS.activeLine=null; renderFast(); };
     $$('#fBody [data-lplus]').forEach(b=>b.onclick=()=>lineStep(b.dataset.lplus,1));
     $$('#fBody [data-lminus]').forEach(b=>b.onclick=()=>lineStep(b.dataset.lminus,-1));
     $$('#fBody [data-ladn]').forEach(b=>b.onclick=()=>lineAdic(b.dataset.lk,b.dataset.ladn));
-    const nt=$('#fNotes'); if(nt) nt.oninput=()=>FS.noteFree=nt.value;
-    $$('#fBody [data-note]').forEach(b=>b.onclick=()=>{ const t=b.dataset.note; const i=FS.noteTags.indexOf(t); if(i>=0)FS.noteTags.splice(i,1); else FS.noteTags.push(t); renderFast(); });
+    $$('#fBody [data-selline]').forEach(card=>card.onclick=(e)=>{ if(e.target.closest('[data-ladn],[data-lplus],[data-lminus]')) return; FS.activeLine=card.dataset.selline; renderFast(); });
+    const nt=$('#fNotes'); if(nt) nt.oninput=()=>{ const l=FS.lines.find(x=>x.key===FS.activeLine); if(l) l.noteFree=nt.value; };
+    $$('#fBody [data-note]').forEach(b=>b.onclick=()=>{ const l=FS.lines.find(x=>x.key===FS.activeLine); if(!l) return; const t=b.dataset.note; const i=l.notes.indexOf(t); if(i>=0)l.notes.splice(i,1); else l.notes.push(t); renderFast(); });
     const add=$('#fAdd'); if(add) add.onclick=commit;
   }
   function key(k){ if(k==='del'){FS.qStr=FS.qStr.slice(0,-1);renderFast();return;} if(k==='ok'){commitQty();return;} if(FS.qStr.length>=2)return; if(FS.qStr===''&&k==='0')return; FS.qStr+=k; renderFast(); }
   function commitQty(){ const n=parseInt(FS.qStr||'0',10); if(!n){toast('Teclea una cantidad');return;} FS.qty=n; if(!FS.flavors){ pushSimple(); return; } FS.assign=[]; FS.step=2; renderFast(); }
-  function flavTap(f){ if(FS.splitMode){ FS.splitBuf.push(f); if(FS.splitBuf.length===2){ if(assignedCount()<FS.qty) FS.lines.push({key:lk(),flavor:null,split:[FS.splitBuf[0],FS.splitBuf[1]],qty:1,adic:[]}); FS.splitMode=false; FS.splitBuf=[]; FS.last=f; } renderFast(); return; } if(assignedCount()>=FS.qty){ toast('Ya asignaste las '+FS.qty); return; } const ln=FS.lines.find(l=>l.flavor===f); if(ln) ln.qty++; else FS.lines.push({key:lk(),flavor:f,split:null,qty:1,adic:[]}); FS.last=f; renderFast(); }
+  function flavTap(f){ if(FS.splitMode){ FS.splitBuf.push(f); if(FS.splitBuf.length===2){ if(assignedCount()<FS.qty){ const nl={key:lk(),flavor:null,split:[FS.splitBuf[0],FS.splitBuf[1]],qty:1,adic:[],notes:[],noteFree:''}; FS.lines.push(nl); FS.activeLine=nl.key; } FS.splitMode=false; FS.splitBuf=[]; FS.last=f; } renderFast(); return; } if(assignedCount()>=FS.qty){ toast('Ya asignaste las '+FS.qty); return; } const ln=FS.lines.find(l=>l.flavor===f); if(ln){ ln.qty++; FS.activeLine=ln.key; } else { const nl={key:lk(),flavor:f,split:null,qty:1,adic:[],notes:[],noteFree:''}; FS.lines.push(nl); FS.activeLine=nl.key; } FS.last=f; renderFast(); }
   function lineStep(key,d){ const l=FS.lines.find(x=>x.key===key); if(!l)return; if(d>0){ if(assignedCount()>=FS.qty){toast('Ya asignaste las '+FS.qty);return;} l.qty++; } else { l.qty--; if(l.qty<=0) FS.lines=FS.lines.filter(x=>x.key!==key); } renderFast(); }
   function lineAdic(key,n){ const l=FS.lines.find(x=>x.key===key); if(!l)return; const a=(FS.adList||[]).find(x=>x.n===n); const i=l.adic.findIndex(x=>x.n===n); if(i>=0)l.adic.splice(i,1); else if(a)l.adic.push({n:a.n,p:a.p||0}); renderFast(); }
   function optP(name){ const o=(FS.flavors||[]).find(x=>x.n===name); return o?(o.p||0):0; }
@@ -2105,7 +2123,6 @@ tmInit();
   function commit(){
     if(assignedCount()!==FS.qty || !FS.lines.length) return;
     const gName=FS.g?FS.g.name:'Sabor';
-    const notes=[...FS.noteTags, FS.noteFree.trim()].filter(Boolean).join(' · ');
     FS.lines.forEach(l=>{
       const adE=l.adic.reduce((a,o)=>a+(o.p||0),0);
       const adSel=l.adic.length?{g:'Adicionales',gp:0,opts:l.adic.map(o=>({n:o.n,p:o.p||0}))}:null;
@@ -2113,6 +2130,7 @@ tmInit();
       if(l.split){ const pa=optP(l.split[0]),pb=optP(l.split[1]); fp=Math.round((pa+pb)/2); fname='½ '+l.split[0]+' / '+l.split[1]; }
       else { fname=l.flavor; fp=optP(l.flavor); }
       const sel=[{g:gName,gp:0,opts:[{n:fname,p:fp}]}]; if(adSel) sel.push(adSel);
+      const notes=[...(l.notes||[]), (l.noteFree||'').trim()].filter(Boolean).join(' · ');
       S.cart.push({ id:uuid(), productId:FS.prod.id, name:FS.prod.name, qty:l.qty, price:FS.prod.price, extra:fp+adE, sel, flavors:[], notes, done:false });
     });
     $('#fastBack').classList.remove('open'); renderCart(); toast(FS.qty+'× '+FS.prod.name+' agregado');
