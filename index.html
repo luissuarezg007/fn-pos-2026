@@ -373,7 +373,6 @@ body.env-dev #nav{background:#D23C3C}
       <label style="margin:0;display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)">Día
         <input type="date" id="tkDate" style="min-height:40px"></label>
       <button class="chip" id="btnToday" type="button">Hoy</button>
-      <button class="chip" id="btnPend" type="button">⏳ Pendientes</button>
       <button class="chip" id="btnCorte" type="button">📋 Corte del día</button>
     </div>
     <div class="row">
@@ -1372,12 +1371,12 @@ async function renderTickets(){
   S.tkOrders = list;
   if(S.tkSel && !list.find(o=>o.id===S.tkSel)) S.tkSel = null;
   if(!S.corte && !S.tkSel && list.length) S.tkSel = list[0].id;
-  $('#tkList').innerHTML = list.map(o=>`
+  $('#tkList').innerHTML = (S.tkPend?'<span class="muted" style="display:block;margin-bottom:6px">⏳ Pendientes de cobro ('+list.length+') — toca "Hoy" para volver</span>':'') + (list.map(o=>`
     <button class="tkrow ${(!S.corte && o.id===S.tkSel)?'sel':''}" data-oid="${o.id}">
       <b>#${o.folio}</b> · ${o.customer.name||'Genérico'} ${o.paid_at?'<span style="color:var(--ok)">✓</span>':(o.status==='completado'?'<span style="color:var(--bad)">P</span>':'')}<br>
       <span class="muted">${S.tkPend?new Date(o.created_at).toLocaleDateString('es-MX',{day:'2-digit',month:'short'})+' · ':''}${fmt(o.total)} · ${o.type} · ${o.paid_at?'cobrado':o.status}</span></button>`).join('') ||
     (S.tkPend ? '<span class="muted">No hay tickets pendientes de cobro 🎉</span>'
-              : '<span class="muted">No hay pedidos el '+S.tkDate+'.</span>');
+              : '<span class="muted">No hay pedidos el '+S.tkDate+'.</span>'));
   $$('#tkList .tkrow').forEach(b=>b.onclick=async ()=>{
     S.corte=false; S.tkSel=b.dataset.oid;
     const o = await idb.get('orders', b.dataset.oid);
@@ -1392,7 +1391,6 @@ async function renderTickets(){
     renderTickets();
   });
   $('#btnCorte').classList.toggle('sel', !!S.corte);
-  $('#btnPend').classList.toggle('sel', !!S.tkPend);
   const wa = $('#btnWA'); const wm = $('#wmark');
   if(S.corte){
     S.curLines = corteLines(all);
@@ -1415,7 +1413,6 @@ async function renderTickets(){
   } else { S.curLines=null; $('#ticketPaper').textContent='Selecciona un pedido de la lista.'; wm.className=''; wm.textContent=''; window.__tkWM=null; $('#tbg').style.display='none'; wa.disabled=true; wa.style.opacity=.45; wa.textContent='Enviar por WhatsApp'; }
 }
 $('#btnCorte').onclick = ()=>{ S.corte = !S.corte; S.tkPend=false; renderTickets(); };
-$('#btnPend').onclick = ()=>{ S.tkPend = !S.tkPend; S.corte=false; S.tkSel=null; renderTickets(); };
 $('#btnToday').onclick = ()=>{ S.tkDate = todayKey(); S.tkSel=null; S.corte=false; S.tkPend=false; renderTickets(); };
 $('#tkDate') && ($('#tkDate').onchange = ()=>{ S.tkDate = $('#tkDate').value || todayKey(); S.tkSel=null; S.corte=false; S.tkPend=false; renderTickets(); });
 $('#btnCopy').onclick = async ()=>{
