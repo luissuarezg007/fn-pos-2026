@@ -141,7 +141,7 @@
 
 <h3>6 · Timer de cocina 🟢 EN PRUEBA</h3>
 <ul>
-<li>En "Nuevo pedido": presets 1–7 min; un toque inicia la cuenta regresiva; permite varios timers a la vez. Al llegar a 0: alarma (beep en bucle), chip parpadea rojo, toast y notificación web. Los timers sobreviven a recargar la página.</li>
+<li>En "Nuevo pedido": presets 1, 2, 3, 4, 6, 7 y 8 min; un toque inicia la cuenta regresiva; permite varios timers a la vez. Al llegar a 0: alarma (beep en bucle), chip parpadea rojo, toast y notificación web. Los timers sobreviven a recargar la página.</li>
 <li>Selector iPad/Alexa en el encabezado. <b>Alexa es una demostración</b> (conexión simulada): el anuncio real en un Echo requiere cuenta de desarrollador Amazon + Alexa Skill + backend, <b>fuera de alcance</b> de este piloto.</li>
 <li>Rama <code>feature/kitchen-timer</code> (depende de los modales del punto 4).</li>
 </ul>
@@ -162,7 +162,7 @@
 <h3>8 · KPI "Por cobrar" clickeable + duración manual del timer 🟢 EN PRUEBA</h3>
 <ul>
 <li><b>Tendencias:</b> la tarjeta "Por cobrar" ahora es tocable ("N tickets · toca para ver") y navega a Tickets mostrando <b>solo los pendientes de cobro</b>, de cualquier fecha (cada fila indica su día). No se agregó ningún botón nuevo en Tickets: el único punto de entrada es la tarjeta; "Hoy", cambiar la fecha o el Corte regresan a la vista normal.</li>
-<li><b>Timer de cocina:</b> junto al preset de 7 min hay una celda para escribir la duración a mano (acepta decimales: 2.5 = 2:30; Enter o ▶ inician; tope 180 min). Técnico: los presets ahora se construyen una sola vez para que el redibujado por segundo no borre lo tecleado.</li>
+<li><b>Timer de cocina:</b> presets actualizados a <b>1, 2, 3, 4, 6, 7 y 8 min</b> (fuera 5, entra 8); junto al preset de 8 hay una celda para escribir la duración a mano (acepta decimales: 2.5 = 2:30; Enter o ▶ inician; tope 180 min). Técnico: los presets ahora se construyen una sola vez para que el redibujado por segundo no borre lo tecleado.</li>
 <li>Para probar: en Tendencias toca la tarjeta "Por cobrar" → debe abrir Tickets con la lista de pendientes; cobra uno y verifica que desaparece. En Nuevo pedido escribe "12" en el timer y toca ▶.</li>
 <li>Rama <code>feature/porcobrar-timer-input</code>.</li>
 </ul>
