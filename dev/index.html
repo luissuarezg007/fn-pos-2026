@@ -250,6 +250,12 @@ body.env-dev #nav{background:#D23C3C}
 .tmPreset .n{font-weight:800;font-size:28px;line-height:1}
 .tmPreset .u{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
 .tmPreset:last-child{grid-column:2}
+.tmCustom{grid-column:2/4;min-height:72px;border-radius:14px;border:1px dashed var(--line);background:#fff;display:flex;align-items:center;gap:6px;padding:8px 12px}
+.tmCustom input{flex:1;min-width:0;width:100%;border:none;background:transparent;font-weight:800;font-size:26px;text-align:center;color:var(--ink);outline:none}
+.tmCustom input::placeholder{color:var(--line);font-size:18px;font-weight:700}
+.tmCustom .u{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.tmCustom .tmGo{min-height:52px;min-width:52px;border:none;border-radius:12px;background:var(--accent);color:#fff;font-weight:800;font-size:17px}
+.tmCustom:focus-within{border-color:var(--accent);border-style:solid}
 .tmPreset:hover{border-color:var(--accent)}
 .tmPreset:active{background:var(--bg)}
 .tmActive{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
@@ -799,7 +805,7 @@ const DEFAULT_CATALOG = {
 }
 let CAT = null;                    // catálogo vigente
 const S = { view:'pedidos', cat:null, cart:[], type:'Al momento', pay:'Efectivo',
-            modal:{prod:null,qty:1,flavors:[]}, kFilter:'open', tkSel:null, tkDate:null, corte:false, editId:null };
+            modal:{prod:null,qty:1,flavors:[]}, kFilter:'open', tkSel:null, tkDate:null, corte:false, tkPend:false, editId:null };
 
 /* ================= FOLIOS ================= */
 async function nextFolio(){
@@ -1360,15 +1366,18 @@ async function renderTickets(){
   if(!S.tkDate) S.tkDate = todayKey();
   if($('#tkDate')) $('#tkDate').value = S.tkDate;
   const all = await idb.all('orders');
-  const list = all.filter(o=>todayKey(o.created_at)===S.tkDate).sort((a,b)=>a.created_at<b.created_at?1:-1);
+  const list = S.tkPend
+    ? all.filter(o=>o.status!=='cancelado' && !o.paid_at).sort((a,b)=>a.created_at<b.created_at?1:-1)
+    : all.filter(o=>todayKey(o.created_at)===S.tkDate).sort((a,b)=>a.created_at<b.created_at?1:-1);
   S.tkOrders = list;
   if(S.tkSel && !list.find(o=>o.id===S.tkSel)) S.tkSel = null;
   if(!S.corte && !S.tkSel && list.length) S.tkSel = list[0].id;
-  $('#tkList').innerHTML = list.map(o=>`
+  $('#tkList').innerHTML = (S.tkPend?'<span class="muted" style="display:block;margin-bottom:6px">⏳ Pendientes de cobro ('+list.length+') — toca "Hoy" para volver</span>':'') + (list.map(o=>`
     <button class="tkrow ${(!S.corte && o.id===S.tkSel)?'sel':''}" data-oid="${o.id}">
       <b>#${o.folio}</b> · ${o.customer.name||'Genérico'} ${o.paid_at?'<span style="color:var(--ok)">✓</span>':(o.status==='completado'?'<span style="color:var(--bad)">P</span>':'')}<br>
-      <span class="muted">${fmt(o.total)} · ${o.type} · ${o.paid_at?'cobrado':o.status}</span></button>`).join('') ||
-    '<span class="muted">No hay pedidos el '+S.tkDate+'.</span>';
+      <span class="muted">${S.tkPend?new Date(o.created_at).toLocaleDateString('es-MX',{day:'2-digit',month:'short'})+' · ':''}${fmt(o.total)} · ${o.type} · ${o.paid_at?'cobrado':o.status}</span></button>`).join('') ||
+    (S.tkPend ? '<span class="muted">No hay tickets pendientes de cobro 🎉</span>'
+              : '<span class="muted">No hay pedidos el '+S.tkDate+'.</span>'));
   $$('#tkList .tkrow').forEach(b=>b.onclick=async ()=>{
     S.corte=false; S.tkSel=b.dataset.oid;
     const o = await idb.get('orders', b.dataset.oid);
@@ -1404,9 +1413,9 @@ async function renderTickets(){
     wa.textContent = (o.customer&&o.customer.phone) ? 'Enviar por WhatsApp · '+o.customer.phone : 'Enviar por WhatsApp';
   } else { S.curLines=null; $('#ticketPaper').textContent='Selecciona un pedido de la lista.'; wm.className=''; wm.textContent=''; window.__tkWM=null; $('#tbg').style.display='none'; wa.disabled=true; wa.style.opacity=.45; wa.textContent='Enviar por WhatsApp'; }
 }
-$('#btnCorte').onclick = ()=>{ S.corte = !S.corte; renderTickets(); };
-$('#btnToday').onclick = ()=>{ S.tkDate = todayKey(); S.tkSel=null; S.corte=false; renderTickets(); };
-$('#tkDate') && ($('#tkDate').onchange = ()=>{ S.tkDate = $('#tkDate').value || todayKey(); S.tkSel=null; S.corte=false; renderTickets(); });
+$('#btnCorte').onclick = ()=>{ S.corte = !S.corte; S.tkPend=false; renderTickets(); };
+$('#btnToday').onclick = ()=>{ S.tkDate = todayKey(); S.tkSel=null; S.corte=false; S.tkPend=false; renderTickets(); };
+$('#tkDate') && ($('#tkDate').onchange = ()=>{ S.tkDate = $('#tkDate').value || todayKey(); S.tkSel=null; S.corte=false; S.tkPend=false; renderTickets(); });
 $('#btnCopy').onclick = async ()=>{
   if(!S.curLines) return;
   const txt = linesTxt(S.curLines);
@@ -1829,10 +1838,13 @@ async function renderTendencias(){
   $('#kpiRow').innerHTML = [
     ['Ventas entregadas', fmt(rev), ''], ['Pedidos', os.length, ''],
     ['Cobrado (caja)', fmt(paidSum), 'ok', paid.length+' tickets'],
-    ['Por cobrar', fmt(pendSum), 'bad', pend.length+' tickets'],
+    ['Por cobrar', fmt(pendSum), 'bad', pend.length+' tickets · toca para ver', 'pend'],
     ['Ticket promedio', os.length?fmt(rev/os.length):'—', ''], ['Tiempo prep. prom.', closed.length?Math.round(prep)+' min':'—', ''],
     ['Cancelados', cancArr.length, 'bad', fmt(cancSum)+' no realizados']
-  ].map(k=>`<div class="card kpi" style="flex:1;min-width:140px"><span class="muted small">${k[0]}</span><div style="font-size:21px;font-weight:800;margin-top:4px;color:${k[2]==='ok'?'var(--ok)':k[2]==='bad'?'var(--bad)':'inherit'}">${k[1]}</div>${k[3]?`<span class="muted small">${k[3]}</span>`:''}</div>`).join('');
+  ].map(k=>`<div class="card kpi" ${k[4]?`data-kpi="${k[4]}" role="button" tabindex="0"`:''} style="flex:1;min-width:140px${k[4]?';cursor:pointer':''}"><span class="muted small">${k[0]}</span><div style="font-size:21px;font-weight:800;margin-top:4px;color:${k[2]==='ok'?'var(--ok)':k[2]==='bad'?'var(--bad)':'inherit'}">${k[1]}</div>${k[3]?`<span class="muted small">${k[3]}</span>`:''}</div>`).join('');
+  const kPend = $('#kpiRow').querySelector('[data-kpi="pend"]');
+  if(kPend){ const goPend = ()=>{ S.tkPend=true; S.corte=false; S.tkSel=null; switchView('tickets'); };
+    kPend.onclick = goPend; kPend.onkeydown = e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); goPend(); } }; }
   const byP={};
   os.forEach(o=>o.items.forEach(i=>{ if(i.cancelled) return; byP[i.name]=byP[i.name]||{u:0,r:0}; byP[i.name].u+=i.qty; byP[i.name].r+=lineTotal(i); }));
   const top = Object.entries(byP).sort((a,b)=>b[1].r-a[1].r).slice(0,8);
@@ -1920,8 +1932,19 @@ function tmStopAlarm(id){ if(_tmAlarms[id]){ clearInterval(_tmAlarms[id]); delet
 
 function tmRender(){
   const pr=$('#tmPresets'); if(!pr) return;
-  pr.innerHTML = TIMER_PRESETS.map(m=>`<button class="tmPreset" data-min="${m}" type="button"><span class="n">${m}</span><span class="u">min</span></button>`).join('');
-  pr.querySelectorAll('.tmPreset').forEach(b=>b.onclick=()=>tmStart(Number(b.dataset.min)));
+  if(!pr.dataset.built){
+    pr.innerHTML = TIMER_PRESETS.map(m=>`<button class="tmPreset" data-min="${m}" type="button"><span class="n">${m}</span><span class="u">min</span></button>`).join('')
+      + `<div class="tmCustom"><input id="tmCustomMin" inputmode="decimal" placeholder="min" aria-label="Minutos del timer"><span class="u">min</span><button class="tmGo" id="tmCustomGo" type="button" aria-label="Iniciar timer">▶</button></div>`;
+    pr.querySelectorAll('.tmPreset').forEach(b=>b.onclick=()=>tmStart(Number(b.dataset.min)));
+    const gi=$('#tmCustomMin');
+    const go=()=>{ const v=parseFloat((gi.value||'').replace(',','.'));
+      if(!v || v<=0){ toast('Escribe los minutos (ej. 12 o 2.5)'); gi.focus(); return; }
+      if(v>180){ toast('Máximo 180 min'); return; }
+      tmStart(Math.round(v*10)/10); gi.value=''; };
+    $('#tmCustomGo').onclick=go;
+    gi.onkeydown=e=>{ if(e.key==='Enter'){ e.preventDefault(); go(); } };
+    pr.dataset.built='1';
+  }
   const linked = TM.backend==='alexa' && TM.alexaLinked;
   $('#tmConnLbl').textContent = TM.backend==='alexa' ? (TM.alexaLinked?'Alexa':'Alexa · conectar') : 'Timer en iPad';
   $('#tmDot').classList.toggle('on', linked);
@@ -2026,8 +2049,8 @@ tmInit();
     if(CAT.settings.openFrom==null){ CAT.settings.openDays=[1,2,3,4,5,6,0]; CAT.settings.openFrom=12; CAT.settings.openTo=23; }
     CAT.updated_at = isoAfter(CAT.updated_at); await idb.put('meta', CAT, 'catalog');
   }
-  if($('#verText')) $('#verText').textContent = APP_VERSION;
   renderCatalogUI(); renderCart(); updateKCount(); updateNet(); await refreshClients();
+  if($('#verText')) $('#verText').textContent = APP_VERSION;
   await sync.init();
   if('serviceWorker' in navigator && location.protocol.startsWith('http')){
     navigator.serviceWorker.register('sw.js').catch(()=>{});

@@ -159,6 +159,14 @@
 <li>Reaplica una decisión de negocio previa que se había entregado como ZIP y nunca llegó a git. Rama <code>fix/clients-cloud-wins</code>.</li>
 </ul>
 
+<h3>8 · KPI "Por cobrar" clickeable + duración manual del timer 🟢 EN PRUEBA</h3>
+<ul>
+<li><b>Tendencias:</b> la tarjeta "Por cobrar" ahora es tocable ("N tickets · toca para ver") y navega a Tickets mostrando <b>solo los pendientes de cobro</b>, de cualquier fecha (cada fila indica su día). No se agregó ningún botón nuevo en Tickets: el único punto de entrada es la tarjeta; "Hoy", cambiar la fecha o el Corte regresan a la vista normal.</li>
+<li><b>Timer de cocina:</b> junto al preset de 7 min hay una celda para escribir la duración a mano (acepta decimales: 2.5 = 2:30; Enter o ▶ inician; tope 180 min). Técnico: los presets ahora se construyen una sola vez para que el redibujado por segundo no borre lo tecleado.</li>
+<li>Para probar: en Tendencias toca la tarjeta "Por cobrar" → debe abrir Tickets con la lista de pendientes; cobra uno y verifica que desaparece. En Nuevo pedido escribe "12" en el timer y toca ▶.</li>
+<li>Rama <code>feature/porcobrar-timer-input</code>.</li>
+</ul>
+
 <h3>Infraestructura de piloto</h3>
 <ul>
 <li>Ambiente <code>/dev</code> aislado de producción: IndexedDB (<code>fancy-nancy-DEV</code>), localStorage, bitácora y timers (<code>fnTimers_DEV</code>) todos con sufijo DEV. Nav rail en rojo vía detector <code>IS_DEV</code>.</li>
