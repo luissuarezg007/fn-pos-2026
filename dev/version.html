@@ -183,6 +183,13 @@
 <li>Preparación para el despliegue a producción y la instalación formal de la PWA. Rama <code>feature/storage-persist</code>.</li>
 </ul>
 
+<h3>Release candidate /rc/ — v14-piloto</h3>
+<ul>
+<li>Nuevo ambiente <code>/rc/</code>: el build v14 <b>sin aislamiento</b> — usa el IndexedDB y la Supabase de producción para el canary con datos reales. Versión unificada <b>v14-piloto</b> en /dev/ y /rc/. Barra café (no roja): /rc/ se ve como producción.</li>
+<li>Regla del canary: operar el turno completo en /rc/ O en la raíz, nunca alternando ambos el mismo día (comparten datos).</li>
+<li>Fix de service workers: cada ambiente ahora borra solo cachés de su propio prefijo (antes cada SW borraba las cachés de los demás ambientes al activarse). El sw.js de producción recibirá el mismo fix al promover.</li>
+</ul>
+
 <h3>Infraestructura de piloto</h3>
 <ul>
 <li>Ambiente <code>/dev</code> aislado de producción: IndexedDB (<code>fancy-nancy-DEV</code>), localStorage, bitácora y timers (<code>fnTimers_DEV</code>) todos con sufijo DEV. Nav rail en rojo vía detector <code>IS_DEV</code>.</li>

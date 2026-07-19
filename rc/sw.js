@@ -1,5 +1,5 @@
 /* Fancy Nancy — Service Worker v1 (cache-first del app shell) */
-const CACHE = 'fancy-nancy-DEV-v17';
+const CACHE = 'fancy-nancy-rc-v1';
 const SHELL = ['./', './index.html', './manifest.json', './icon-180.png', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', e => {
@@ -8,7 +8,7 @@ self.addEventListener('install', e => {
 
 self.addEventListener('activate', e => {
   e.waitUntil(
-    caches.keys().then(keys => Promise.all(keys.filter(k => k.startsWith('fancy-nancy-DEV-') && k !== CACHE).map(k => caches.delete(k))))
+    caches.keys().then(keys => Promise.all(keys.filter(k => k.startsWith('fancy-nancy-rc-') && k !== CACHE).map(k => caches.delete(k))))
       .then(() => self.clients.claim())
   );
 });
