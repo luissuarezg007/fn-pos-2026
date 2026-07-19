@@ -167,6 +167,15 @@
 <li>Rama <code>feature/porcobrar-timer-input</code>.</li>
 </ul>
 
+<h3>9 · Pantalla Top clientes (podio) + Top productos por categoría + rango personalizado 🟢 EN PRUEBA</h3>
+<ul>
+<li><b>Clientes:</b> pantalla propia (chip "👤 Top clientes" en Tendencias navega a ella; "‹ Tendencias" regresa). Podio top 3 (1º al centro con gradiente naranja, 2º y 3º a los lados, medalla + nombre + total + top productos), lugares 4–5 como barras, y tabla completa de todos los clientes. Datos <b>históricos completos</b>, no dependen del rango de Tendencias (intencional).</li>
+<li><b>Tendencias:</b> nueva card "Top productos por categoría" — agrupa categoría → producto → sabor/variante real elegida (vía <code>itemVariant()</code> leyendo <code>item.sel</code>); esta sí respeta el rango.</li>
+<li><b>Rango personalizado:</b> Desde/Hasta + "Aplicar rango" en Tendencias; los chips Hoy/7/30 regresan al modo preset y limpian el rango.</li>
+<li>Origen: handoff de Design (items 11–12 + rango). <b>Excluido a propósito:</b> la reconexión de WhatsApp click-to-chat que venía en el archivo — se mantiene el envío por imagen decidido previamente.</li>
+<li>Rama <code>feature/clientes-topcat</code>. Sale del backlog el punto #5 (Top de clientes), ya implementado.</li>
+</ul>
+
 <h3>Infraestructura de piloto</h3>
 <ul>
 <li>Ambiente <code>/dev</code> aislado de producción: IndexedDB (<code>fancy-nancy-DEV</code>), localStorage, bitácora y timers (<code>fnTimers_DEV</code>) todos con sufijo DEV. Nav rail en rojo vía detector <code>IS_DEV</code>.</li>
@@ -179,7 +188,6 @@
 <li><strong>#1 Realtime instantáneo:</strong> reemplazar el polling de 5 s por suscripciones realtime de Supabase (~1 s). Mayor retorno operativo si cocina y caja son iPads separados.</li>
 <li><strong>#3 Modo cocina (TV):</strong> vista a pantalla completa solo de comandas, letra grande, para un iPad/monitor fijo.</li>
 <li><strong>#4 Reportes y comparativos:</strong> comparativo periodo actual vs anterior (semana/mes) con % de cambio en ventas, pedidos y ticket promedio; mejor y peor día; día de la semana más fuerte; tendencia de crecimiento semana a semana; proyección de cierre de mes. Todo con los datos ya capturados, sin registro nuevo.</li>
-<li><strong>#5 Top de clientes e historial:</strong> quién pide más, qué pide cada quién, recencia; base para lealtad/promociones.</li>
 <li><strong>#6 Tiempo estimado de entrega en el ticket:</strong> &quot;listo en ~25 min&quot; calculado del promedio real de preparación.</li>
 </ul>
 </details>
