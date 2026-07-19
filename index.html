@@ -544,6 +544,7 @@ body.env-dev #nav{background:#D23C3C}
           <button class="btn ghost" id="btnExport">Exportar JSON</button>
           <label class="btn ghost" style="display:flex;align-items:center;margin:0">Importar JSON<input type="file" id="impFile" accept=".json" style="display:none"></label>
         </div>
+        <div id="persistStatus" class="small muted" style="margin-top:8px">Almacenamiento: verificando…</div>
       </div>
       <div class="card" style="grid-column:1/-1">
         <b>Catálogo de clientes <span id="cliCount" class="muted small"></span></b>
@@ -1544,7 +1545,14 @@ function renderAdic(){
     || '<tr><td colspan="3" class="muted small">Sin adicionales. Agrega el primero.</td></tr>';
   $$('#adRows .adDel').forEach(b=>b.onclick=e=>e.target.closest('tr').remove());
 }
+function renderPersistStatus(){
+  const el=$('#persistStatus'); if(!el) return;
+  if(window.PERSIST_OK===true) el.innerHTML='🔒 Almacenamiento protegido — el sistema no borrará los datos locales por falta de espacio.';
+  else if(window.PERSIST_OK===false) el.textContent='⚠️ Almacenamiento no protegido (best effort). Instala la app en pantalla de inicio y recarga.';
+  else el.textContent='Almacenamiento: sin información del navegador.';
+}
 function renderConfig(){
+  renderPersistStatus();
   const s = CAT.settings;
   $('#cfgBiz').value=s.biz||''; $('#cfgBizPhone').value=s.bizPhone||''; $('#cfgEnvio').value=s.envio??30;
   $('#cfgWarn').value=s.warnMin??15; $('#cfgBad').value=s.badMin??25;
@@ -2165,6 +2173,16 @@ tmInit();
   }
   renderCatalogUI(); renderCart(); updateKCount(); updateNet(); await refreshClients();
   await sync.init();
+  // Persistencia de almacenamiento: pide al navegador proteger IndexedDB contra desalojo por falta de disco.
+  try{
+    if(navigator.storage && navigator.storage.persist){
+      const ya = await navigator.storage.persisted();
+      const ok = ya || await navigator.storage.persist();
+      window.PERSIST_OK = ok;
+      log('INFO','storage.persist', ok?'concedido':'no concedido');
+    } else { window.PERSIST_OK = null; }
+  }catch(e){ window.PERSIST_OK = null; }
+  renderPersistStatus();
   if('serviceWorker' in navigator && location.protocol.startsWith('http')){
     navigator.serviceWorker.register('sw.js').catch(()=>{});
   }
