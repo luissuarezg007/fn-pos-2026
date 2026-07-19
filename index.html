@@ -113,6 +113,16 @@ table.cat th,table.cat td{border-bottom:1px solid var(--line);padding:7px 6px;te
 table.cat input{min-height:38px;padding:6px 8px;width:100%}
 table.cat input.num{width:84px}
 .toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:var(--nav);color:#fff;padding:12px 20px;border-radius:12px;z-index:99;display:none;font-weight:600}
+.podium{display:flex;align-items:flex-end;justify-content:center;gap:12px;margin-top:14px;flex-wrap:wrap}
+.podStep{flex:1;max-width:180px;min-width:140px;border-radius:14px 14px 6px 6px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding:14px 10px 12px;text-align:center;color:#fff}
+.podStep.pod0{background:linear-gradient(180deg,var(--accent),#E0431A);order:2}
+.podStep.pod1{background:var(--nav);order:1}
+.podStep.pod2{background:#C8A44D;order:3}
+.podMedal{font-size:28px;line-height:1}
+.podName{font-weight:800;font-size:14px;margin-top:6px}
+.podAmt{font-weight:800;font-size:19px;margin-top:2px}
+.podProd{font-size:11px;opacity:.9;margin-top:6px}
+.podOrders{font-size:10.5px;opacity:.75;margin-top:2px}
 .hrow{display:flex;align-items:center;gap:8px;margin:7px 0;font-size:12px}
 .hlbl{width:110px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .htrack{flex:1;background:var(--bg);border-radius:6px;height:16px;overflow:hidden}
@@ -438,6 +448,13 @@ body.env-dev #nav{background:#D23C3C}
       <button class="chip sel" data-v="7">7 días</button>
       <button class="chip" data-v="30">30 días</button>
     </div>
+    <div class="row" style="align-items:center;gap:10px;margin-top:10px;flex-wrap:wrap">
+      <label style="margin:0;font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px">Desde <input type="date" id="trFrom" style="min-height:38px"></label>
+      <label style="margin:0;font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px">Hasta <input type="date" id="trTo" style="min-height:38px"></label>
+      <button class="chip" id="trApply" type="button">Aplicar rango</button>
+      <button class="chip" id="btnClientsView" type="button">👤 Top clientes</button>
+      <span class="muted small" id="trLabel"></span>
+    </div>
     <div class="row" style="flex-wrap:wrap;margin-top:14px" id="kpiRow"></div>
     <div class="row" style="flex-wrap:wrap;margin-top:16px">
       <div class="card" style="flex:1;min-width:320px"><b>Ventas por producto</b><div id="chProd" style="margin-top:8px"></div></div>
@@ -447,8 +464,30 @@ body.env-dev #nav{background:#D23C3C}
       <div class="card" style="flex:1;min-width:320px"><b>Ventas por día de la semana</b><div id="chDow"></div></div>
       <div class="card" style="flex:1;min-width:320px"><b>Mapa de calor · día × hora (pedidos)</b><div id="chHeat"></div></div>
     </div>
+    <div class="card" style="margin-top:16px">
+      <b>Top productos por categoría</b>
+      <div id="chByCat" style="margin-top:8px"></div>
+    </div>
     <div class="card" style="margin-top:16px"><b>Proyección próximos 7 días y sugerencia de compra</b><div id="chProj"></div></div>
     <div style="margin-top:14px" class="noprint"><button class="btn ghost" id="btnCSV">Exportar CSV del rango</button></div>
+  </section>
+
+  <!-- ============ CLIENTES ============ -->
+  <section id="view-clientes" class="view">
+    <div class="row" style="align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:6px">
+      <button class="chip" id="btnBackTrends" type="button">‹ Tendencias</button>
+      <h2 style="margin:0">Top clientes</h2>
+      <span class="muted small">Histórico completo · todas las fechas</span>
+    </div>
+    <div class="card" style="margin-top:12px">
+      <b>Podio · top 3</b>
+      <div id="podium" class="podium"></div>
+      <div id="rank45" style="margin-top:14px"></div>
+    </div>
+    <div class="card" style="margin-top:16px">
+      <b>Todos los clientes</b>
+      <table class="cat" style="margin-top:8px"><thead><tr><th>Cliente</th><th>Pedidos</th><th>Total gastado</th></tr></thead><tbody id="clientsAllBody"></tbody></table>
+    </div>
   </section>
 
   <!-- ============ CONFIG ============ -->
@@ -1053,7 +1092,8 @@ async function resolveCustomer(){
   return cust;
 }
 segWire('#segMv',  v=>{ MVKIND=v; });
-segWire('#segRange', v=>{ TRANGE=Number(v); renderTendencias(); });
+$('#trApply').onclick=()=>{ TR_FROM=$('#trFrom').value; TR_TO=$('#trTo').value; if(!TR_FROM){toast('Elige al menos la fecha Desde');return;} TR_MODE='custom'; $$('#segRange .chip').forEach(c=>c.classList.remove('sel')); const f=new Date(TR_FROM+'T12:00').toLocaleDateString('es-MX',{day:'2-digit',month:'short'}); const t=new Date((TR_TO||TR_FROM)+'T12:00').toLocaleDateString('es-MX',{day:'2-digit',month:'short'}); $('#trLabel').textContent='Rango: '+f+' - '+t; renderTendencias(); };
+segWire('#segRange', v=>{ TRANGE=Number(v); TR_MODE='preset'; if($('#trLabel'))$('#trLabel').textContent=''; if($('#trFrom'))$('#trFrom').value=''; if($('#trTo'))$('#trTo').value=''; renderTendencias(); });
 segWire('#segPay',  v=>{ S.pay=v; $('#cashBox').style.display = v==='Efectivo'?'':'none'; renderChange(); });
 
 async function buildOrder(cust){
@@ -1818,16 +1858,24 @@ async function applyRecipeDiscount(o){
 
 /* ================= VISTA: TENDENCIAS ================= */
 let TRANGE=7;
+let TR_MODE='preset', TR_FROM='', TR_TO='';
+function trendRange(){
+  if(TR_MODE==='custom' && TR_FROM){
+    const s=new Date(TR_FROM+'T00:00:00'); const e=new Date((TR_TO||TR_FROM)+'T23:59:59.999');
+    return {start:s, end:e};
+  }
+  const s=new Date(); s.setHours(0,0,0,0); s.setDate(s.getDate()-(TRANGE-1));
+  return {start:s, end:new Date(8640000000000000)};
+}
+function inRange(o){ const r=trendRange(), t=new Date(o.created_at); return t>=r.start && t<=r.end; }
 const DOW=['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
 async function trendOrders(){
-  const start = new Date(); start.setHours(0,0,0,0); start.setDate(start.getDate()-(TRANGE-1));
-  return (await idb.all('orders')).filter(o=>o.status!=='cancelado' && new Date(o.created_at)>=start);
+  return (await idb.all('orders')).filter(o=>o.status!=='cancelado' && inRange(o));
 }
 async function renderTendencias(){
   if(!$('#kpiRow')) return;
   const os = await trendOrders();
-  const startC = new Date(); startC.setHours(0,0,0,0); startC.setDate(startC.getDate()-(TRANGE-1));
-  const cancArr = (await idb.all('orders')).filter(o=>o.status==='cancelado' && new Date(o.created_at)>=startC);
+  const cancArr = (await idb.all('orders')).filter(o=>o.status==='cancelado' && inRange(o));
   const cancSum = cancArr.reduce((a,o)=>a+(o.items.reduce((x,i)=>x+lineTotal(i),0)),0);
   const rev = os.reduce((a,o)=>a+o.total,0);
   const paid = os.filter(o=>o.paid_at); const paidSum = paid.reduce((a,o)=>a+o.total,0);
@@ -1851,6 +1899,37 @@ async function renderTendencias(){
   $('#chProd').innerHTML = top.map(([n,v])=>`<div class="hrow"><span class="hlbl">${n}</span>
     <span class="htrack"><span class="hbar" style="width:${Math.round(v.r/maxR*100)}%"></span></span>
     <span class="hval">${v.u} u · ${fmt(v.r)}</span></div>`).join('') || '<p class="muted small">Sin ventas en el rango.</p>';
+  // ===== Top productos por categoría, desglosado por sabor/variante =====
+  const itemVariant = it => { if(!it.sel) return null; const s=it.sel.find(x=>x.g!=='Adicionales'); return (s&&s.opts&&s.opts[0])?s.opts[0].n:null; };
+  const byCat={};
+  os.forEach(o=>o.items.forEach(i=>{
+    if(i.cancelled) return;
+    const prod=CAT.products.find(p=>p.id===i.productId);
+    const cat=prod?prod.cat:'Otros';
+    const pname=prod?prod.name:i.name;
+    const variant=itemVariant(i)||pname;
+    byCat[cat]=byCat[cat]||{};
+    byCat[cat][pname]=byCat[cat][pname]||{};
+    byCat[cat][pname][variant]=byCat[cat][pname][variant]||{u:0,r:0};
+    byCat[cat][pname][variant].u+=i.qty; byCat[cat][pname][variant].r+=lineTotal(i);
+  }));
+  $('#chByCat').innerHTML = Object.entries(byCat).sort((a,b)=>{
+    const ra=Object.values(a[1]).reduce((s,prods)=>s+Object.values(prods).reduce((x,v)=>x+v.r,0),0);
+    const rb=Object.values(b[1]).reduce((s,prods)=>s+Object.values(prods).reduce((x,v)=>x+v.r,0),0);
+    return rb-ra;
+  }).map(([cat,prods])=>{
+    const prodEntries=Object.entries(prods).map(([pname,variants])=>[pname,variants,Object.values(variants).reduce((s,v)=>s+v.r,0)]).sort((a,b)=>b[2]-a[2]);
+    return `<div style="margin-bottom:18px"><div class="muted small" style="font-weight:800;text-transform:uppercase;letter-spacing:.03em;margin-bottom:6px">${cat}</div>`
+      + prodEntries.map(([pname,variants])=>{
+        const rows=Object.entries(variants).sort((a,b)=>b[1].r-a[1].r);
+        const maxCR=Math.max(1,...rows.map(r=>r[1].r));
+        const single = rows.length===1 && rows[0][0]===pname;
+        return `<div style="margin:0 0 10px 6px"><div style="font-weight:700;font-size:13px;margin-bottom:2px">${pname}</div>`
+          + rows.map(([n,v])=>`<div class="hrow"><span class="hlbl">${single?'—':n}</span>
+            <span class="htrack"><span class="hbar" style="width:${Math.round(v.r/maxCR*100)}%"></span></span>
+            <span class="hval">${v.u} u · ${fmt(v.r)}</span></div>`).join('') + '</div>';
+      }).join('') + '</div>';
+  }).join('') || '<p class="muted small">Sin ventas en el rango.</p>';
   const byH = Array(24).fill(0); os.forEach(o=>byH[new Date(o.created_at).getHours()]+=o.total);
   const mH = Math.max(1,...byH);
   $('#chHour').innerHTML = byH.map((v,h)=>`<div class="vcol"><div class="vb" style="height:${Math.round(v/mH*100)}%" title="${h}:00 — ${fmt(v)}"></div><span class="vlbl">${h%3===0?h:''}</span></div>`).join('');
@@ -1882,6 +1961,41 @@ async function renderTendencias(){
     <table class="cat" style="flex:1;min-width:280px"><thead><tr><th>Insumo</th><th>Necesario 7d</th><th>Stock</th><th>Sugerencia</th></tr></thead><tbody id="buyRows">${buyRows||'<tr><td colspan="4" class="muted">Define recetas en Inventario para recibir sugerencias de compra.</td></tr>'}</tbody></table>
   </div><p class="muted small" style="margin-top:6px">Proyección por promedio simple del rango seleccionado; mejora conforme acumules semanas de datos.</p>`;
 }
+async function renderClientes(){
+  const allOrders = (await idb.all('orders')).filter(o=>o.status!=='cancelado');
+  const byClient={};
+  allOrders.forEach(o=>{
+    const key=(o.customer&&(o.customer.phone||o.customer.name))||'Genérico';
+    const name=(o.customer&&o.customer.name)||'Cliente genérico';
+    byClient[key]=byClient[key]||{name,total:0,orders:0,prods:{}};
+    byClient[key].total+=o.total; byClient[key].orders++;
+    o.items.forEach(i=>{ if(i.cancelled) return; byClient[key].prods[i.name]=(byClient[key].prods[i.name]||0)+i.qty; });
+  });
+  const clientArr = Object.values(byClient).sort((a,b)=>b.total-a.total);
+  const top5 = clientArr.slice(0,5);
+  const podiumOrder=[1,0,2].filter(i=>top5[i]); // 2º-1º-3º de izquierda a derecha
+  const heights={0:'190px',1:'150px',2:'128px'};
+  const medals={0:'🥇',1:'🥈',2:'🥉'};
+  const prodTxt = c => Object.entries(c.prods).sort((a,b)=>b[1]-a[1]).slice(0,3).map(([n])=>n).join(', ');
+  $('#podium').innerHTML = podiumOrder.map(i=>{
+    const c=top5[i]; if(!c) return '';
+    return `<div class="podStep pod${i}" style="height:${heights[i]}">
+      <span class="podMedal">${medals[i]}</span>
+      <span class="podName">${c.name}</span>
+      <span class="podAmt">${fmt(c.total)}</span>
+      <span class="podProd">${prodTxt(c)||'Sin productos'}</span>
+      <span class="podOrders">${c.orders} pedido(s)</span>
+    </div>`;
+  }).join('') || '<p class="muted small">Sin clientes registrados.</p>';
+  const rest = top5.slice(3);
+  $('#rank45').innerHTML = rest.length ? rest.map((c,i)=>`<div class="hrow"><span class="hlbl">${i+4}. ${c.name}</span>
+    <span class="htrack"><span class="hbar" style="width:${Math.round(c.total/(top5[0].total||1)*100)}%"></span></span>
+    <span class="hval">${fmt(c.total)}</span></div>
+    <div class="muted small" style="margin:2px 0 10px 0">${prodTxt(c)||'Sin productos'} · ${c.orders} pedido(s)</div>`).join('') : '';
+  $('#clientsAllBody').innerHTML = clientArr.map(c=>`<tr><td>${c.name}</td><td>${c.orders}</td><td><b>${fmt(c.total)}</b></td></tr>`).join('') || '<tr><td colspan="3" class="muted">Sin clientes registrados.</td></tr>';
+}
+$('#btnClientsView').onclick = ()=>switchView('clientes');
+$('#btnBackTrends').onclick = ()=>switchView('tendencias');
 $('#btnCSV').onclick = async ()=>{
   const os = (await trendOrders()).sort((a,b)=>a.created_at<b.created_at?-1:1);
   const rows = [['folio','fecha','hora','cliente','casa','tipo','estado','pago','subtotal','envio','total','productos']];
@@ -1905,6 +2019,7 @@ function switchView(v){
   if(v==='config') renderConfig();
   if(v==='inventario') renderInventario();
   if(v==='tendencias') renderTendencias();
+  if(v==='clientes') renderClientes();
 }
 $$('.navbtn[data-view]').forEach(b=>b.onclick=()=>switchView(b.dataset.view));
 
