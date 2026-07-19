@@ -176,6 +176,13 @@
 <li>Rama <code>feature/clientes-topcat</code>. Sale del backlog el punto #5 (Top de clientes), ya implementado.</li>
 </ul>
 
+<h3>10 · Persistencia de almacenamiento (storage.persist) 🟢 EN PRUEBA</h3>
+<ul>
+<li>Al arrancar, la app pide al navegador marcar su almacenamiento como <b>persistente</b>: IndexedDB (pedidos, catálogo, clientes, outbox) deja de ser desalojable automáticamente cuando el dispositivo se queda sin espacio.</li>
+<li>Indicador en Config → Respaldo local: "🔒 Almacenamiento protegido" si fue concedido; advertencia si no (típicamente se concede solo con la PWA instalada en pantalla de inicio). El resultado también se escribe en el Diagnóstico (<code>storage.persist</code>).</li>
+<li>Preparación para el despliegue a producción y la instalación formal de la PWA. Rama <code>feature/storage-persist</code>.</li>
+</ul>
+
 <h3>Infraestructura de piloto</h3>
 <ul>
 <li>Ambiente <code>/dev</code> aislado de producción: IndexedDB (<code>fancy-nancy-DEV</code>), localStorage, bitácora y timers (<code>fnTimers_DEV</code>) todos con sufijo DEV. Nav rail en rojo vía detector <code>IS_DEV</code>.</li>
